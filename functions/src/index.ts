@@ -79,7 +79,40 @@ exports.setUser = functions.https.onCall(async (data, context) => {
     }
 });
 
-exports.uploadUserImage = functions.https.onCall(async (data, context) => {
+
+exports.deleteUser = functions.https.onCall(async (data, context) => {
+    try {
+        // Get the user ID from the request data
+        const uid = data.uid;
+
+        // Check if the user is authenticated
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+        }
+
+        // Get the user document reference
+        const userRef = admin.firestore().collection('users').doc(uid);
+
+        // Delete the user document
+        await userRef.delete();
+
+        console.log(`User document deleted for user ${uid}`);
+
+        // Delete the user from Firebase Authentication
+        await admin.auth().deleteUser(uid);
+
+        console.log(`User deleted from Firebase Authentication for user ${uid}`);
+
+        // Return a success message
+        return { message: 'User deleted successfully' };
+
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        throw new functions.https.HttpsError('internal', 'An error occurred while deleting user.');
+    }
+});
+
+exports.setUserImage = functions.https.onCall(async (data, context) => {
     try {
         // Get the user ID from the request data
         const uid = data.uid;
