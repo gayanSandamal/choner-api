@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "choner-6d275"
-  }
+  },
+  "targets": {},
+  "etags": {
+    "choner-6d275": {
+      "extensionInstances": {
+        "storage-resize-images": "465b59415cc0a690ab2de93272114a6c0bb942e258729f1030e2989be0b4c958"
+      }
+    }
+  },
+  "dataconnectEmulatorConfig": {}
 }
