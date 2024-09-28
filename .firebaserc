@@ -7,7 +7,7 @@
     "choner-6d275": {
       "extensionInstances": {
         "firestore-send-email": "96f42638eacba8b2eae556cf241392144438949f504064c8b58af9b9327fd176",
-        "storage-resize-images": "465b59415cc0a690ab2de93272114a6c0bb942e258729f1030e2989be0b4c958"
+        "storage-resize-images": "9fe8896714120daa646d31422fa9232ce46f6dbc4c42ba441ac407c9ea5939e4"
       }
     }
   },
