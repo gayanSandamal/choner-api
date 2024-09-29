@@ -52,3 +52,32 @@ export const createInterest = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'An error occurred while creating the interest post.');
     }
 });
+
+export const publishScheduledInterestsJob = functions.pubsub.schedule('every 5 minutes').onRun(async (context) => {
+    try {
+        const now = admin.firestore.Timestamp.now();
+        const interestsRef = admin.firestore().collection('interests');
+
+        // Query for interests that are scheduled and their scheduledAt time has passed
+        const scheduledInterests = await interestsRef
+            .where('visibility', '==', 'scheduled')
+            .where('scheduledAt', '<=', now)
+            .get();
+
+        const batch = admin.firestore().batch();
+
+        scheduledInterests.forEach((doc) => {
+            batch.update(doc.ref, { visibility: 'public' });
+        });
+
+        // Commit the batch
+        await batch.commit();
+
+        console.log(`Updated ${scheduledInterests.size} published scheduled interests`);
+
+        return null;
+    } catch (error) {
+        console.error('Error updating scheduled interests:', error);
+        return null;
+    }
+});
