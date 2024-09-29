@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { createUserDocument, getUser, setUser, deleteUser } from "./user";
 import { sendEmail } from "./email";
-import { createInterest, publishScheduledInterestsJob } from "./interest";
+import { createInterest, publishScheduledInterestsJob, getInterests } from "./interest";
 
-export { createUserDocument, getUser, setUser, deleteUser, sendEmail, createInterest, publishScheduledInterestsJob };
+export { createUserDocument, getUser, setUser, deleteUser, sendEmail, createInterest, publishScheduledInterestsJob, getInterests };
