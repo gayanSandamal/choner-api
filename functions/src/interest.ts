@@ -199,3 +199,48 @@ export const getInterests = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError('internal', 'An error occurred while fetching public interests.');
     }
 });
+
+export const deleteInterest = functions.https.onCall(async (data, context) => {
+    try {
+        // Check if the user is authenticated
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+        }
+
+        // Get the user ID from the authenticated context
+        const uid = context.auth.uid;
+
+        // Extract interest ID from the request data
+        const { id } = data;
+
+        // Validate required field
+        if (!id) {
+            throw new functions.https.HttpsError('invalid-argument', 'Missing interest ID.');
+        }
+
+        // Get the interest post document reference
+        const interestPostRef = admin.firestore().collection('interests').doc(id);
+
+        // Check if the document exists and if the user has permission to delete it
+        const doc = await interestPostRef.get();
+        if (!doc.exists) {
+            throw new functions.https.HttpsError('not-found', 'Interest post not found.');
+        }
+        const docData = doc.data();
+        if (docData?.createdBy !== uid) {
+            throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this interest post.');
+        }
+
+        // Delete the interest post document from Firestore
+        await interestPostRef.delete();
+
+        console.log(`Interest post deleted with ID: ${id}`);
+
+        // Return a success message
+        return { message: 'Interest post deleted successfully' };
+
+    } catch (error) {
+        console.error('Error deleting interest post:', error);
+        throw new functions.https.HttpsError('internal', 'An error occurred while deleting the interest post.');
+    }
+});
