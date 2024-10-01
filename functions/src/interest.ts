@@ -53,6 +53,68 @@ export const createInterest = functions.https.onCall(async (data, context) => {
     }
 });
 
+export const updateInterest = functions.https.onCall(async (data, context) => {
+    try {
+        // Check if the user is authenticated
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+        }
+
+        // Get the user ID from the authenticated context
+        const uid = context.auth.uid;
+
+        // Extract data from the request
+        const { id, title, description, scheduledAt, visibility } = data;
+
+        // Validate required fields
+        if (!id || !title || !description) {
+            throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
+        }
+
+        // Get the interest post document reference
+        const interestPostRef = admin.firestore().collection('interests').doc(id);
+
+        // Check if the document exists and if the user has permission to update it
+        const doc = await interestPostRef.get();
+        if (!doc.exists) {
+            throw new functions.https.HttpsError('not-found', 'Interest post not found.');
+        }
+
+        const docData = doc.data();
+        if (!docData || docData.createdBy !== uid) {
+            throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this interest post.');
+        }
+
+        if (docData.visibility === 'public') {
+            throw new functions.https.HttpsError('permission-denied', 'You cannot update a published interest post. Only delete');
+        }
+
+        const nowTime = admin.firestore.FieldValue.serverTimestamp();
+
+        const postVisibility = scheduledAt ? 'scheduled' : visibility || docData.visibility;
+
+        const updatedInterestPost = {
+            title,
+            description: description || '',
+            scheduledAt: scheduledAt ? admin.firestore.Timestamp.fromDate(new Date(scheduledAt)) : docData.scheduledAt,
+            visibility: postVisibility,
+            updatedAt: nowTime
+        };
+
+        // Update the interest post document in Firestore
+        await interestPostRef.update(updatedInterestPost);
+
+        console.log(`Interest post updated with ID: ${id}`);
+
+        // Return the updated interest post ID
+        return { id, message: 'Interest post updated successfully' };
+
+    } catch (error) {
+        console.error('Error updating interest post:', error);
+        throw new functions.https.HttpsError('internal', 'An error occurred while updating the interest post.');
+    }
+});
+
 export const publishScheduledInterestsJob = functions.pubsub.schedule('every 5 minutes').onRun(async (context) => {
     try {
         const now = admin.firestore.Timestamp.now();
