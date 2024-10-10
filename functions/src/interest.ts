@@ -27,16 +27,33 @@ export const createInterest = functions.https.onCall(async (data, context) => {
 
         const postVisibility = scheduledAt ? 'scheduled' : visibility || 'public';
 
+        // Get the user document from Firestore
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+
+        // Check if the user document exists
+        if (!userDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'User not found.');
+        }
+
+        const userData = userDoc.data();
+        // Sanitize the user data to avoid exposing private information
+        const createdUser = {
+            uid,
+            displayName: userData?.displayName,
+            profileImageUrl: userData?.profileImageUrl
+        };
+
         const newInterestPost = {
             createdBy: uid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: nowTime, // Use nowTime consistently
             title,
             description: description || '',
             scheduledAt: scheduledAt ? admin.firestore.Timestamp.fromDate(new Date(scheduledAt)) : nowTime,
             visibility: postVisibility,
             votes: [],
             comments: [],
-            enrolments: []
+            enrolments: [],
+            createdUser
         };
 
         // Set the new interest post document in Firestore
@@ -44,14 +61,30 @@ export const createInterest = functions.https.onCall(async (data, context) => {
 
         console.log(`Interest post created with ID: ${interestPostRef.id}`);
 
-        // Return the created interest post ID
-        return { id: interestPostRef.id, message: 'Interest post created successfully' };
+        // Fetch the created document to return full data
+        const createdPost = await interestPostRef.get();
+
+        // Check if the document exists
+        if (!createdPost.exists) {
+            throw new functions.https.HttpsError('not-found', 'The newly created interest post was not found.');
+        }
+
+        const postData = createdPost.data();
+
+        // Return the created interest post data, along with safe user data
+        return {
+            id: createdPost.id,
+            data: { ...postData, createdUser },
+            message: 'Interest post created successfully'
+        };
 
     } catch (error) {
         console.error('Error creating interest post:', error);
-        throw new functions.https.HttpsError('internal', 'An error occurred while creating the interest post.');
+        // Improve the returned error message for better debugging
+        throw error;
     }
 });
+
 
 export const updateInterest = functions.https.onCall(async (data, context) => {
     try {
@@ -144,7 +177,34 @@ export const publishScheduledInterestsJob = functions.pubsub.schedule('every 5 m
     }
 });
 
-export const getInterests = functions.https.onCall(async (data, context) => {
+export const getAllInterests = functions.https.onCall(async (data, context) => {
+    try {
+        // Check if the user is authenticated
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+        }
+    
+        // Get a reference to the collection
+        const collectionRef = admin.firestore().collection('interests');
+    
+        // Fetch all documents from the collection
+        const snapshot = await collectionRef.get();
+    
+        // Create an array to hold the document data
+        const allDocs: any = [];
+        snapshot.forEach((doc) => {
+          allDocs.push({ id: doc.id, ...doc.data() });
+        });
+    
+        // Return the data as JSON
+        return allDocs;
+      } catch (error) {
+        console.error('Error getting interests data:', error);
+        throw error;
+      }
+});
+
+export const getPaginatedInterests = functions.https.onCall(async (data, context) => {
     try {
         // Check if the user is authenticated
         if (!context.auth) {
@@ -242,5 +302,32 @@ export const deleteInterest = functions.https.onCall(async (data, context) => {
     } catch (error) {
         console.error('Error deleting interest post:', error);
         throw new functions.https.HttpsError('internal', 'An error occurred while deleting the interest post.');
+    }
+});
+
+export const getInterest = functions.https.onCall(async (data, context) => {
+    try {
+        // Get the interest post ID from the request data
+        const id = data.id;
+
+        // Check if the interest is authenticated
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+        }
+
+        // Get the user document from Firestore
+        const interestDoc = await admin.firestore().collection('interests').doc(id).get();
+
+        // Check if the interest document exists
+        if (!interestDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'Interest not found.');
+        }
+
+        // Return the interest data
+        return interestDoc.data();
+
+    } catch (error) {
+        console.error('Error getting interest data:', error);
+        throw error;
     }
 });
