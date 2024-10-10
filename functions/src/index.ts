@@ -1,6 +1,23 @@
 /* eslint-disable */
-import { createUserDocument, getUser, setUser, deleteUser } from "./user";
-import { sendEmail } from "./email";
-import { createInterest, publishScheduledInterestsJob, getInterests, updateInterest, deleteInterest } from "./interest";
+import * as user from "./user";
+import * as email from "./email";
+import * as interest from "./interest";
 
-export { createUserDocument, getUser, setUser, deleteUser, sendEmail, createInterest, publishScheduledInterestsJob, getInterests, updateInterest, deleteInterest };
+export const {
+    createUserDocument,
+    getUser,
+    setUser,
+    deleteUser
+} = user;
+
+export const { sendEmail } = email;
+
+export const {
+    createInterest,
+    publishScheduledInterestsJob,
+    getInterest,
+    getAllInterests,
+    getPaginatedInterests,
+    updateInterest,
+    deleteInterest
+} = interest;
