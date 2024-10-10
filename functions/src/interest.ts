@@ -23,8 +23,6 @@ export const createInterest = functions.https.onCall(async (data, context) => {
         // Create a new interest post document
         const interestPostRef = admin.firestore().collection('interests').doc();
 
-        const nowTime = admin.firestore.FieldValue.serverTimestamp();
-
         const postVisibility = scheduledAt ? 'scheduled' : visibility || 'public';
 
         const newInterestPost = {
@@ -32,7 +30,7 @@ export const createInterest = functions.https.onCall(async (data, context) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             title,
             description: description || '',
-            scheduledAt: scheduledAt ? admin.firestore.Timestamp.fromDate(new Date(scheduledAt)) : nowTime,
+            ...(scheduledAt && {scheduledAt: scheduledAt}),
             visibility: postVisibility,
             votes: [],
             comments: [],
