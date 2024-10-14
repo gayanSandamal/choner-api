@@ -20,6 +20,7 @@ export const {
     getAllInterests,
     getPaginatedInterests,
     getPaginatedUserSpecificInterests,
+    getPaginatedUserSpecificScheduledInterests,
     updateInterest,
     deleteInterest
 } = interest;
