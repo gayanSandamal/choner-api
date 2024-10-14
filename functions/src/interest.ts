@@ -149,18 +149,44 @@ export const updateInterest = functions.https.onCall(async (data, context) => {
 export const publishScheduledInterestsJob = functions.pubsub.schedule('every 5 minutes').onRun(async (context) => {
     try {
         const now = admin.firestore.Timestamp.now();
+        const currentDate = new Date(now.seconds * 1000 + now.nanoseconds / 1000000);
+
         const interestsRef = admin.firestore().collection('interests');
 
         // Query for interests that are scheduled and their scheduledAt time has passed
         const scheduledInterests = await interestsRef
             .where('visibility', '==', 'scheduled')
-            .where('scheduledAt', '<=', now)
             .get();
 
         const batch = admin.firestore().batch();
 
         scheduledInterests.forEach((doc) => {
-            batch.update(doc.ref, { visibility: 'public' });
+            const postData = doc.data();
+
+            // Log the scheduledAt value and its type to debug the error
+            console.log('ScheduledAt:', postData.scheduledAt, 'Type:', typeof postData.scheduledAt);
+
+            let postTime;
+
+            // Check if scheduledAt is a Firestore Timestamp
+            if (postData.scheduledAt instanceof admin.firestore.Timestamp) {
+                postTime = postData.scheduledAt.toDate();  // Convert Firestore Timestamp to JavaScript Date
+            } else if (typeof postData.scheduledAt === 'string') {
+                postTime = new Date(postData.scheduledAt);  // Convert ISO string to JavaScript Date
+            } else if (postData.scheduledAt instanceof Date) {
+                postTime = postData.scheduledAt;  // Already a JavaScript Date object
+            } else {
+                console.error('Unrecognized type for scheduledAt:', postData.scheduledAt);
+                return;  // Skip this document if the type is unrecognized
+            }
+
+            console.log(currentDate.getTime(), postTime.getTime());
+            
+
+            // Compare current date with the postTime
+            if (currentDate.getTime() >= postTime.getTime()) {
+                batch.update(doc.ref, { visibility: 'public' });
+            }
         });
 
         // Commit the batch
