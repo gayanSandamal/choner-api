@@ -13,7 +13,7 @@ export const createCommunityPost = functions.https.onCall(async (data, context) 
         const uid = context.auth.uid;
 
         // Extract data from the request
-        const { title, type = 'post', scheduledAt, visibility } = data;
+        const { title, imageUrls, type = 'post', scheduledAt, visibility } = data;
 
         // Validate required fields
         if (!title) {
@@ -45,6 +45,7 @@ export const createCommunityPost = functions.https.onCall(async (data, context) 
             createdBy: uid,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             title,
+            ...(imageUrls && {imageUrls: imageUrls}),
             type,
             ...(scheduledAt && {scheduledAt: scheduledAt}),
             visibility: postVisibility,
@@ -94,7 +95,7 @@ export const updateCommunityPost = functions.https.onCall(async (data, context) 
         const uid = context.auth.uid;
 
         // Extract data from the request
-        const { id, title, type = 'post', scheduledAt, visibility } = data;
+        const { id, title, imageUrls, type = 'post', scheduledAt, visibility } = data;
 
         // Validate required fields
         if (!id || !title) {
@@ -123,9 +124,25 @@ export const updateCommunityPost = functions.https.onCall(async (data, context) 
 
         const postVisibility = scheduledAt ? 'scheduled' : visibility || docData.visibility;
 
+        // Get the user document from Firestore
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+
+        // Check if the user document exists
+        if (!userDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'User not found.');
+        }
+        const userData = userDoc.data();
+        // Sanitize the user data to avoid exposing private information
+        const createdUser = {
+            uid,
+            displayName: userData?.displayName,
+            profileImageUrl: userData?.profileImageUrl
+        };
+
         const updatedCommunityPost = {
             title,
             type,
+            ...(imageUrls && {imageUrls: imageUrls}),
             scheduledAt: scheduledAt ? admin.firestore.Timestamp.fromDate(new Date(scheduledAt)) : docData.scheduledAt,
             visibility: postVisibility,
             updatedAt: nowTime
@@ -136,8 +153,12 @@ export const updateCommunityPost = functions.https.onCall(async (data, context) 
 
         console.log(`Community post updated with ID: ${id}`);
 
-        // Return the updated interest post ID
-        return { id, message: 'Community post updated successfully' };
+        // Return the created interest post data, along with safe user data
+        return {
+            id: id,
+            data: { ...updatedCommunityPost, createdUser },
+            message: 'Interest post updated successfully'
+        };
 
     } catch (error) {
         console.error('Error updating community post:', error);
