@@ -13,7 +13,7 @@ export const createCommunityPost = functions.https.onCall(async (data, context) 
         const uid = context.auth.uid;
 
         // Extract data from the request
-        const { title, type = 'post', scheduledAt, visibility } = data;
+        const { title, imageUrls, type = 'post', scheduledAt, visibility } = data;
 
         // Validate required fields
         if (!title) {
@@ -45,6 +45,7 @@ export const createCommunityPost = functions.https.onCall(async (data, context) 
             createdBy: uid,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             title,
+            ...(imageUrls && {imageUrls: imageUrls}),
             type,
             ...(scheduledAt && {scheduledAt: scheduledAt}),
             visibility: postVisibility,
@@ -94,7 +95,7 @@ export const updateCommunityPost = functions.https.onCall(async (data, context) 
         const uid = context.auth.uid;
 
         // Extract data from the request
-        const { id, title, type = 'post', scheduledAt, visibility } = data;
+        const { id, title, imageUrls, type = 'post', scheduledAt, visibility } = data;
 
         // Validate required fields
         if (!id || !title) {
@@ -141,6 +142,7 @@ export const updateCommunityPost = functions.https.onCall(async (data, context) 
         const updatedCommunityPost = {
             title,
             type,
+            ...(imageUrls && {imageUrls: imageUrls}),
             scheduledAt: scheduledAt ? admin.firestore.Timestamp.fromDate(new Date(scheduledAt)) : docData.scheduledAt,
             visibility: postVisibility,
             updatedAt: nowTime
