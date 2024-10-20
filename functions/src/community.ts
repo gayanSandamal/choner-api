@@ -123,6 +123,21 @@ export const updateCommunityPost = functions.https.onCall(async (data, context) 
 
         const postVisibility = scheduledAt ? 'scheduled' : visibility || docData.visibility;
 
+        // Get the user document from Firestore
+        const userDoc = await admin.firestore().collection('users').doc(uid).get();
+
+        // Check if the user document exists
+        if (!userDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'User not found.');
+        }
+        const userData = userDoc.data();
+        // Sanitize the user data to avoid exposing private information
+        const createdUser = {
+            uid,
+            displayName: userData?.displayName,
+            profileImageUrl: userData?.profileImageUrl
+        };
+
         const updatedCommunityPost = {
             title,
             type,
@@ -136,8 +151,12 @@ export const updateCommunityPost = functions.https.onCall(async (data, context) 
 
         console.log(`Community post updated with ID: ${id}`);
 
-        // Return the updated interest post ID
-        return { id, message: 'Community post updated successfully' };
+        // Return the created interest post data, along with safe user data
+        return {
+            id: id,
+            data: { ...updatedCommunityPost, createdUser },
+            message: 'Interest post updated successfully'
+        };
 
     } catch (error) {
         console.error('Error updating community post:', error);
