@@ -260,14 +260,14 @@ export const getPaginatedUserSpecificCommunityPosts = functions.https.onCall(asy
         }
 
         // Extract pagination parameters from the request data
-        const { uid, type = 'post', pageSize = 10, lastVisible } = data;
+        const { uid, type = 'post', pageSize = 10, lastVisible, visibility = 'public' } = data;
 
         // Create a reference to the 'interests' collection
         const communityPostsRef = admin.firestore().collection('interests');
 
         // Start building the query
         let query = communityPostsRef
-            .where('visibility', '==', 'public')
+            .where('visibility', '==', visibility)
             .where('type', '==', type)
             .where('createdBy', '==', uid)
             .orderBy('createdAt', 'desc')
