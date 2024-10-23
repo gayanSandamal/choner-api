@@ -47,7 +47,7 @@ export const createCommunityPost = functions.https.onCall(async (data, context) 
             title,
             ...(imageUrls && {imageUrls: imageUrls}),
             type,
-            ...(scheduledAt && {scheduledAt: scheduledAt}),
+            ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
             visibility: postVisibility,
             votes: [],
             comments: [],

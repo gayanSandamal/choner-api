@@ -46,7 +46,7 @@ export const createInterest = functions.https.onCall(async (data, context) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             title,
             description: description || '',
-            ...(scheduledAt && {scheduledAt: scheduledAt}),
+            ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
             visibility: postVisibility,
             votes: [],
             comments: [],
