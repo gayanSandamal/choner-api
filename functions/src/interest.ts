@@ -285,14 +285,14 @@ export const getPaginatedUserSpecificInterests = functions.https.onCall(async (d
         }
 
         // Extract pagination parameters from the request data
-        const { uid, pageSize = 10, lastVisible } = data;
+        const { uid, pageSize = 10, lastVisible, visibility = 'public' } = data;
 
         // Create a reference to the 'interests' collection
         const interestsRef = admin.firestore().collection('interests');
 
         // Start building the query
         let query = interestsRef
-            .where('visibility', '==', 'public')
+            .where('visibility', '==', visibility)
             .where('createdBy', '==', uid)
             .orderBy('createdAt', 'desc')
             .limit(pageSize);
