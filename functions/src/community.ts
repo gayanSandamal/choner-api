@@ -263,7 +263,7 @@ export const getPaginatedUserSpecificCommunityPosts = functions.https.onCall(asy
         const { uid, type = 'post', pageSize = 10, lastVisible, visibility = 'public' } = data;
 
         // Create a reference to the 'interests' collection
-        const communityPostsRef = admin.firestore().collection('interests');
+        const communityPostsRef = admin.firestore().collection('community');
 
         // Start building the query
         let query = communityPostsRef
