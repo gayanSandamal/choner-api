@@ -131,22 +131,6 @@ export const updateInterest = functions.https.onCall(async (data, context) => {
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        // Get the user document from Firestore
-        const userDoc = await admin.firestore().collection('users').doc(uid).get();
-
-        // Check if the user document exists
-        if (!userDoc.exists) {
-            throw new functions.https.HttpsError('not-found', 'User not found.');
-        }
-
-        const userData = userDoc.data();
-        // Sanitize the user data to avoid exposing private information
-        const createdUser = {
-            uid,
-            displayName: userData?.displayName,
-            profileImageUrl: userData?.profileImageUrl
-        };
-
         // Update the interest post document in Firestore
         await interestPostRef.update(updatedInterestPost);
 
@@ -155,7 +139,7 @@ export const updateInterest = functions.https.onCall(async (data, context) => {
         // Return the created interest post data, along with safe user data
         return {
             id: id,
-            data: { ...updatedInterestPost, createdUser },
+            data: { ...updatedInterestPost },
             message: 'Interest post updated successfully'
         };
 
