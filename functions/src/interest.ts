@@ -120,16 +120,15 @@ export const updateInterest = functions.https.onCall(async (data, context) => {
             throw new functions.https.HttpsError('permission-denied', 'You cannot update a published interest post. Only delete');
         }
 
-        const nowTime = admin.firestore.FieldValue.serverTimestamp();
-
         const postVisibility = scheduledAt ? 'scheduled' : visibility || docData.visibility;
 
         const updatedInterestPost = {
+            ...docData,
             title,
             description: description || '',
-            scheduledAt: scheduledAt ? admin.firestore.Timestamp.fromDate(new Date(scheduledAt)) : docData.scheduledAt,
+            scheduledAt: scheduledAt ? scheduledAt : docData.scheduledAt,
             visibility: postVisibility,
-            updatedAt: nowTime
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
         // Get the user document from Firestore

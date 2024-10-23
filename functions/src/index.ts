@@ -39,5 +39,6 @@ export const {
     createComment,
     updateComment,
     deleteComment,
-    getComments
+    getComments,
+    voteUpvoteComment
 } = comments;
