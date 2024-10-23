@@ -46,7 +46,7 @@ export const createInterest = functions.https.onCall(async (data, context) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             title,
             description: description || '',
-            ...(scheduledAt && {scheduledAt: scheduledAt}),
+            ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
             visibility: postVisibility,
             votes: [],
             comments: [],
@@ -120,32 +120,15 @@ export const updateInterest = functions.https.onCall(async (data, context) => {
             throw new functions.https.HttpsError('permission-denied', 'You cannot update a published interest post. Only delete');
         }
 
-        const nowTime = admin.firestore.FieldValue.serverTimestamp();
-
         const postVisibility = scheduledAt ? 'scheduled' : visibility || docData.visibility;
 
         const updatedInterestPost = {
+            ...docData,
             title,
             description: description || '',
-            scheduledAt: scheduledAt ? admin.firestore.Timestamp.fromDate(new Date(scheduledAt)) : docData.scheduledAt,
+            scheduledAt: scheduledAt ? scheduledAt : docData.scheduledAt,
             visibility: postVisibility,
-            updatedAt: nowTime
-        };
-
-        // Get the user document from Firestore
-        const userDoc = await admin.firestore().collection('users').doc(uid).get();
-
-        // Check if the user document exists
-        if (!userDoc.exists) {
-            throw new functions.https.HttpsError('not-found', 'User not found.');
-        }
-
-        const userData = userDoc.data();
-        // Sanitize the user data to avoid exposing private information
-        const createdUser = {
-            uid,
-            displayName: userData?.displayName,
-            profileImageUrl: userData?.profileImageUrl
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
         // Update the interest post document in Firestore
@@ -156,7 +139,7 @@ export const updateInterest = functions.https.onCall(async (data, context) => {
         // Return the created interest post data, along with safe user data
         return {
             id: id,
-            data: { ...updatedInterestPost, createdUser },
+            data: { ...updatedInterestPost },
             message: 'Interest post updated successfully'
         };
 
