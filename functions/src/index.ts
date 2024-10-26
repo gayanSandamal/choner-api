@@ -40,5 +40,10 @@ export const {
     updateComment,
     deleteComment,
     getComments,
-    voteUpvoteComment
+    voteUpvoteComment,
+    createReply,
+    updateReply,
+    deleteReply,
+    getReplies,
+    voteUpvoteReply
 } = comments;
