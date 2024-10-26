@@ -14,8 +14,7 @@ interface Comment {
     createdAt: FirebaseFirestore.Timestamp;
 }
   
-const commentCollection = 'communityPost';
-const replyCollection = 'replyPost';
+const commentAndReplyCollection = 'communityPost';
 
 export const createComment = functions.https.onCall(async (data, context) => {
     try {
@@ -43,7 +42,7 @@ export const createComment = functions.https.onCall(async (data, context) => {
         };
 
         // Extract data from the request
-        const { type = commentCollection, postId, comment } = data;
+        const { type = commentAndReplyCollection, postId, comment } = data;
 
         // Validate required fields
         if (!postId || !comment || !createdBy) {
@@ -103,7 +102,7 @@ export const updateComment = functions.https.onCall(async (data, context) => {
         const uid = context.auth.uid;
 
         // Extract data from the request
-        const { type = commentCollection, commentId, comment } = data;
+        const { type = commentAndReplyCollection, commentId, comment } = data;
 
         // Validate required fields
         if (!commentId || !comment) {
@@ -170,7 +169,7 @@ export const deleteComment = functions.https.onCall(async (data, context) => {
         };
 
         // Extract data from the request
-        const { type = commentCollection, commentId } = data;
+        const { type = commentAndReplyCollection, commentId } = data;
 
         // Validate required fields
         if (!commentId || !deletedBy) {
@@ -210,7 +209,7 @@ export const getComments = functions.https.onCall(async (data, context) => {
         }
 
         // Extract data from the request
-        const { type = commentCollection, postId, pageSize = 10, lastVisible } = data;
+        const { type = commentAndReplyCollection, postId, pageSize = 10, lastVisible } = data;
 
         // Validate required fields
         if (!postId) {
@@ -289,7 +288,7 @@ export const voteUpvoteComment = functions.https.onCall(async (data, context) =>
         };
 
         // Extract data from the request
-        const { type = commentCollection, commentId } = data;
+        const { type = commentAndReplyCollection, commentId } = data;
 
         // Validate required fields
         if (!commentId || !likedBy) {
@@ -368,7 +367,7 @@ export const createReply = functions.https.onCall(async (data, context) => {
         };
 
         // Extract data from the request
-        const { type = replyCollection, commentId, reply } = data;
+        const { type = commentAndReplyCollection, commentId, reply } = data;
 
         // Validate required fields
         if (!commentId || !reply || !createdBy) {
@@ -428,7 +427,7 @@ export const updateReply = functions.https.onCall(async (data, context) => {
         const uid = context.auth.uid;
 
         // Extract data from the request
-        const { type = replyCollection, replyId, reply } = data;
+        const { type = commentAndReplyCollection, replyId, reply } = data;
 
         // Validate required fields
         if (!replyId || !reply) {
@@ -495,7 +494,7 @@ export const deleteReply = functions.https.onCall(async (data, context) => {
         };
 
         // Extract data from the request
-        const { type = replyCollection, replyId } = data;
+        const { type = commentAndReplyCollection, replyId } = data;
 
         // Validate required fields
         if (!replyId || !deletedBy) {
@@ -535,7 +534,7 @@ export const getReplies = functions.https.onCall(async (data, context) => {
         }
 
         // Extract data from the request
-        const { type = replyCollection, commentId, pageSize = 10, lastVisible } = data;
+        const { type = commentAndReplyCollection, commentId, pageSize = 10, lastVisible } = data;
 
         // Validate required fields
         if (!commentId) {
@@ -614,7 +613,7 @@ export const voteUpvoteReply = functions.https.onCall(async (data, context) => {
         };
 
         // Extract data from the request
-        const { type = replyCollection, replyId } = data;
+        const { type = commentAndReplyCollection, replyId } = data;
 
         // Validate required fields
         if (!replyId || !likedBy) {
