@@ -1,10 +1,11 @@
 /* eslint-disable */
 import * as user from "./user";
 import * as email from "./email";
-import * as interest from "./interest";
+// import * as interest from "./interest";
 import * as community from "./community";
 import * as comments from "./handlers/commentHandlers";
 import * as replies from "./handlers/replyHandlers";
+import * as interst from "./handlers/interestHandlers";
 
 export const {
     createUserDocument,
@@ -16,15 +17,13 @@ export const {
 export const { sendEmail } = email;
 
 export const {
-    createInterest,
-    publishScheduledInterestsJob,
-    getInterest,
-    getAllInterests,
-    getPaginatedInterests,
-    getPaginatedUserSpecificInterests,
-    updateInterest,
-    deleteInterest
-} = interest;
+    createInterestHandler,
+    updateInterestHandler,
+    deleteInterestHandler,
+    getPaginatedInterestsHandler,
+    getPaginatedUserSpecificInterestsHandler,
+    publishScheduledInterestsJobHandler
+} = interst;
 
 export const {
     createCommunityPost,

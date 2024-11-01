@@ -1,13 +1,7 @@
 /* eslint-disable */
+import { AuditRecord } from './Common';
 
-import { Timestamp } from 'firebase-admin/firestore';
-import { UserInfo } from './User';
-
-export interface General {
-    id: string;
-    createdBy: UserInfo;
-    createdAt: Timestamp;
-    updatedAt?: Timestamp;
+export interface General extends AuditRecord {
     likes?: string[];
 }
 
