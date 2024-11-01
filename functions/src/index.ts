@@ -4,6 +4,7 @@ import * as email from "./email";
 import * as interest from "./interest";
 import * as community from "./community";
 import * as comments from "./handlers/commentHandlers";
+import * as replies from "./handlers/replyHandlers";
 
 export const {
     createUserDocument,
@@ -35,19 +36,6 @@ export const {
     deleteCommunityPost
 } = community;
 
-// export const {
-//     createComment,
-//     updateComment,
-//     deleteComment,
-//     getComments,
-//     voteUpvoteComment,
-//     createReply,
-//     updateReply,
-//     deleteReply,
-//     getReplies,
-//     voteUpvoteReply
-// } = comments;
-
 export const {
     createCommentHandler,
     updateCommentHandler,
@@ -55,3 +43,11 @@ export const {
     getCommentsHandler,
     voteUpvoteCommentHandler
 } = comments;
+
+export const {
+    createReplyHandler,
+    updateReplyHandler,
+    deleteReplyHandler,
+    getRepliesHandler,
+    voteUpvoteReplyHandler
+} = replies;
