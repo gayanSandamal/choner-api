@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as functions from "firebase-functions";
-import admin from "./firebaseAdmin";
+import admin from "./admin/firebaseAdmin";
 
 export const createCommunityPost = functions.https.onCall(async (data, context) => {
     try {

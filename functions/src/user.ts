@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as functions from "firebase-functions";
-import admin from "./firebaseAdmin";
+import admin from "./admin/firebaseAdmin";
 
 export const createUserDocument = functions.auth.user().onCreate(async (user: any) => {
     try {

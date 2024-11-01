@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as functions from "firebase-functions";
-import admin from "./firebaseAdmin";
+import admin from "./admin/firebaseAdmin";
 
 interface Comment {
     id: string;
