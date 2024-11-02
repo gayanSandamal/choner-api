@@ -1,5 +1,4 @@
 /* eslint-disable */
-
 import { UserInfo } from "./User";
 
 export enum PostVisibilityStatus {

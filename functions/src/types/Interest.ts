@@ -6,12 +6,6 @@ export interface Interest extends Post {
     enrolments: string[];
 }
 
-export interface UserInfo {
-    uid: string;
-    displayName: string;
-    profileImageUrl: string;
-}
-
 export interface GetPaginatedInterestsResponse {
     interests: Interest[];
     lastVisible: string | null;
