@@ -39,6 +39,7 @@ export const getPaginatedInterests = async (
     let query = admin.firestore()
         .collection(INTEREST_COLLECTION)
         .where('visibility', '==', visibility)
+        .where('deleted', '==', false)
         .orderBy('createdAt', 'desc')
         .limit(pageSize);
 
@@ -71,6 +72,7 @@ export const getPaginatedUserSpecificInterests = async (
         .collection(INTEREST_COLLECTION)
         .where('visibility', '==', visibility)
         .where('createdBy', '==', uid)
+        .where('deleted', '==', false)
         .orderBy('createdAt', 'desc')
         .limit(pageSize);
 
@@ -101,6 +103,7 @@ export const publishScheduledInterests = async (): Promise<void> => {
     const scheduledInterests = await interestsRef
         .where('visibility', '==', PostVisibilityStatus.Scheduled)
         .where('scheduledAt', '<=', now)
+        .where('deleted', '==', false)
         .get();
 
     const batch = admin.firestore().batch();

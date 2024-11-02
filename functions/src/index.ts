@@ -1,16 +1,16 @@
 /* eslint-disable */
-import * as user from "./user";
 import * as email from "./email";
 import * as comments from "./handlers/commentHandlers";
 import * as replies from "./handlers/replyHandlers";
 import * as interst from "./handlers/interestHandlers";
 import * as community from "./handlers/communityHandlers";
+import * as user from "./handlers/userHandlers";
 
 export const {
-    createUserDocument,
-    getUser,
-    setUser,
-    deleteUser
+    createUserDocumentHandler,
+    getUserHandler,
+    setUserHandler,
+    deleteUserHandler
 } = user;
 
 export const { sendEmail } = email;

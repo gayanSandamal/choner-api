@@ -24,6 +24,7 @@ export const createCommentHandler = functions.https.onCall(async (data, context)
                 profileImageUrl: user.profileImageUrl,
             },
             createdAt: admin.firestore.Timestamp.now(),
+            deleted: false,
             id: '',
         };
 

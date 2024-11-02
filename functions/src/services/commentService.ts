@@ -34,6 +34,7 @@ export const getComments = async (
     let query = admin.firestore()
         .collection(commentCollection)
         .where('postId', '==', postId)
+        .where('deleted', '==', false)
         .orderBy('createdAt', 'desc')
         .limit(pageSize);
 

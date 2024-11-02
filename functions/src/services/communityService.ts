@@ -41,6 +41,7 @@ export const getPaginatedCommunityPosts = async (
         .collection(COMMUNITY_COLLECTION)
         .where('visibility', '==', visibility)
         .where('type', '==', type)
+        .where('deleted', '==', false)
         .orderBy('createdAt', 'desc')
         .limit(pageSize);
 
@@ -75,6 +76,7 @@ export const getPaginatedUserSpecificCommunityPosts = async (
         .where('createdBy', '==', uid)
         .where('visibility', '==', visibility)
         .where('type', '==', type)
+        .where('deleted', '==', false)
         .orderBy('createdAt', 'desc')
         .limit(pageSize);
 
@@ -104,6 +106,7 @@ export const publishScheduledCommunityPosts = async (): Promise<void> => {
     const scheduledPosts = await communityRef
         .where('visibility', '==', 'scheduled')
         .where('scheduledAt', '<=', now)
+        .where('deleted', '==', false)
         .get();
 
     const batch = admin.firestore().batch();

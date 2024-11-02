@@ -10,7 +10,8 @@ import {
     getReplies,
     toggleReplyVote,
 } from '../services/replyService';
-import { Reply, GetRepliesResponse, ToggleVoteResponse } from '../types/Reply';
+import { Reply, GetRepliesResponse } from '../types/Reply';
+import { ToggleVoteResponse } from '../types/CommentsReplies';
 
 const REPLY_COLLECTION = 'communityPostReplies';
 
@@ -32,6 +33,7 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
                 displayName: user.displayName,
                 profileImageUrl: user.profileImageUrl,
             },
+            deleted: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp() as any,
         };
 

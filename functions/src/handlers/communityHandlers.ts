@@ -29,6 +29,7 @@ export const createCommunityPostHandler = functions.https.onCall(async (data, co
             title,
             createdBy: user.uid,
             createdAt: admin.firestore.FieldValue.serverTimestamp() as any,
+            deleted: false,
             visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
             imageUrls,
             type,

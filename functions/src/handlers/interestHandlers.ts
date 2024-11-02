@@ -31,6 +31,7 @@ export const createInterestHandler = functions.https.onCall(async (data, context
             createdBy: user.uid,
             createdAt: admin.firestore.FieldValue.serverTimestamp() as any,
             visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
+            deleted: false,
             votes: [],
             comments: [],
             enrolments: [],
