@@ -1,7 +1,7 @@
 /* eslint-disable */
 import admin from '../admin/firebaseAdmin';
 import { Interest, GetPaginatedInterestsResponse } from '../types/Interest';
-import { PostVisibility, PostVisibilityStatus } from '../types/Post';
+import { PostVisibilities, PostVisibilityStatus } from '../types/Post';
 
 const INTEREST_COLLECTION = 'interests';
 
@@ -34,7 +34,7 @@ export const getInterest = async (interestId: string): Promise<Interest | null> 
 export const getPaginatedInterests = async (
     pageSize: number,
     lastVisible: string | undefined,
-    visibility: PostVisibility = PostVisibilityStatus.Public
+    visibility: PostVisibilities = PostVisibilityStatus.Public
 ): Promise<GetPaginatedInterestsResponse> => {
     let query = admin.firestore()
         .collection(INTEREST_COLLECTION)
@@ -65,7 +65,7 @@ export const getPaginatedUserSpecificInterests = async (
     uid: string,
     pageSize: number,
     lastVisible: string | undefined,
-    visibility: PostVisibility = PostVisibilityStatus.Public
+    visibility: PostVisibilities = PostVisibilityStatus.Public
 ): Promise<GetPaginatedInterestsResponse> => {
     let query = admin.firestore()
         .collection(INTEREST_COLLECTION)

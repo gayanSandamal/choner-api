@@ -1,20 +1,20 @@
 /* eslint-disable */
-import { Post } from './Post';
+import { PaginatedResponse, Post } from './Post';
 
 export enum CommunityPostType {
     Post = 'post',
     Question = 'question'
 }
 
+export type CommunityPostTypes = CommunityPostType.Post | CommunityPostType.Question;
+
 export interface CommunityPost extends Post {
     imageUrls?: string[];
     type: CommunityPostType.Post | CommunityPostType.Question;
 }
 
-export interface GetPaginatedCommunityPostsResponse {
+export interface GetPaginatedCommunityPostsResponse extends PaginatedResponse {
     communityPosts: CommunityPost[];
-    lastVisible: string | null;
-    hasMore: boolean;
 }
 
 export interface CommunityPostResponse {

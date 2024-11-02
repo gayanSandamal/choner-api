@@ -6,7 +6,7 @@ export enum PostVisibilityStatus {
     Scheduled = 'scheduled'
 }
 
-export type PostVisibility = PostVisibilityStatus.Public | PostVisibilityStatus.Scheduled;
+export type PostVisibilities = PostVisibilityStatus.Public | PostVisibilityStatus.Scheduled;
 
 export interface Post {
     id: string;
@@ -15,8 +15,13 @@ export interface Post {
     createdAt: FirebaseFirestore.Timestamp;
     updatedAt?: FirebaseFirestore.Timestamp;
     scheduledAt?: Date | FirebaseFirestore.Timestamp;
-    visibility: PostVisibility;
+    visibility: PostVisibilities;
     votes: string[];
     comments: string[];
     createdUser: UserInfo;
+}
+
+export interface PaginatedResponse {
+    lastVisible: string | null;
+    hasMore: boolean;
 }

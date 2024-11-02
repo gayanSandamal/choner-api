@@ -1,13 +1,11 @@
 /* eslint-disable */
-import { Post } from './Post';
+import { PaginatedResponse, Post } from './Post';
 
 export interface Interest extends Post {
     description: string;
     enrolments: string[];
 }
 
-export interface GetPaginatedInterestsResponse {
+export interface GetPaginatedInterestsResponse extends PaginatedResponse {
     interests: Interest[];
-    lastVisible: string | null;
-    hasMore: boolean;
 }

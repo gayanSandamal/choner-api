@@ -1,11 +1,10 @@
 /* eslint-disable */
 import * as user from "./user";
 import * as email from "./email";
-// import * as interest from "./interest";
-import * as community from "./community";
 import * as comments from "./handlers/commentHandlers";
 import * as replies from "./handlers/replyHandlers";
 import * as interst from "./handlers/interestHandlers";
+import * as community from "./handlers/communityHandlers";
 
 export const {
     createUserDocument,
@@ -26,13 +25,12 @@ export const {
 } = interst;
 
 export const {
-    createCommunityPost,
-    publishScheduledCommunityPostJob,
-    getCommunityPost,
-    getPaginatedCommunityPost,
-    getPaginatedUserSpecificCommunityPosts,
-    updateCommunityPost,
-    deleteCommunityPost
+    createCommunityPostHandler,
+    updateCommunityPostHandler,
+    deleteCommunityPostHandler,
+    getPaginatedCommunityPostsHandler,
+    getPaginatedUserSpecificCommunityPostsHandler,
+    publishScheduledCommunityPostsHandler
 } = community;
 
 export const {
