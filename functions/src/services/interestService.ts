@@ -2,6 +2,7 @@
 import admin from '../admin/firebaseAdmin';
 import { Interest, GetPaginatedInterestsResponse } from '../types/Interest';
 import { PostVisibilities, PostVisibilityStatus } from '../types/Post';
+import { now } from '../utils/commonUtils';
 
 const INTEREST_COLLECTION = 'interests';
 
@@ -97,7 +98,6 @@ export const getPaginatedUserSpecificInterests = async (
 
 // Publish scheduled interests function for a scheduled job
 export const publishScheduledInterests = async (): Promise<void> => {
-    const now = admin.firestore.Timestamp.now();
     const interestsRef = admin.firestore().collection(INTEREST_COLLECTION);
 
     const scheduledInterests = await interestsRef

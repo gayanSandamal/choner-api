@@ -14,6 +14,7 @@ import {
 import { CommunityPost, CommunityPostType, GetPaginatedCommunityPostsResponse } from '../types/Community';
 import admin from '../admin/firebaseAdmin';
 import { PostVisibilityStatus } from '../types/Post';
+import { now } from '../utils/commonUtils';
 
 // Create Community Post Handler
 export const createCommunityPostHandler = functions.https.onCall(async (data, context) => {
@@ -28,7 +29,7 @@ export const createCommunityPostHandler = functions.https.onCall(async (data, co
         const newPost = {
             title,
             createdBy: user.uid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp() as any,
+            createdAt: now,
             deleted: false,
             visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
             imageUrls,
@@ -79,7 +80,7 @@ export const updateCommunityPostHandler = functions.https.onCall(async (data, co
             imageUrls,
             visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || existingPost.visibility,
             scheduledAt: scheduledAt ? new Date(scheduledAt) : existingPost.scheduledAt,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp() as FirebaseFirestore.Timestamp,
+            updatedAt: now,
         };
 
         const updatedPost = await updateCommunityPost(id, updatedData);

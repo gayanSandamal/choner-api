@@ -2,6 +2,7 @@
 import admin from '../admin/firebaseAdmin';
 import { UserDocument } from '../types/User';
 import { generateOtp } from '../utils/authUtils';
+import { now } from '../utils/commonUtils';
 import { sendOtpEmail } from './emailService';
 
 const USERS_COLLECTION = 'users';
@@ -19,7 +20,7 @@ export const createUserDocument = async (user: UserDocument, otp: string): Promi
 
     // Store OTP with timestamp in Firestore
     await admin.firestore().collection(USERS_COLLECTION).doc(user.uid).set(
-        { otp, otpCreatedAt: admin.firestore.FieldValue.serverTimestamp() },
+        { otp, otpCreatedAt: now },
         { merge: true }
     );
 
@@ -64,7 +65,7 @@ export const resendOtp = async (uid: string, email: string): Promise<{ otp: stri
     await admin.firestore().collection(USERS_COLLECTION).doc(uid).set(
         {
             otp,
-            otpCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            otpCreatedAt: now,
         },
         { merge: true }
     );
@@ -116,7 +117,6 @@ export const softDeleteUserDataFromCollection = async(collectionName: string, ui
     const snapshot = await collectionRef.where('createdBy', '==', uid).get();
 
     const batch = admin.firestore().batch();
-    const now = admin.firestore.FieldValue.serverTimestamp();
 
     snapshot.forEach(doc => {
         batch.update(doc.ref, { deleted: true, deletedAt: now });

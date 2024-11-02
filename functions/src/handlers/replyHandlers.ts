@@ -12,6 +12,7 @@ import {
 } from '../services/replyService';
 import { Reply, GetRepliesResponse } from '../types/Reply';
 import { ToggleVoteResponse } from '../types/CommentsReplies';
+import { now } from '../utils/commonUtils';
 
 const REPLY_COLLECTION = 'communityPostReplies';
 
@@ -34,7 +35,7 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
                 profileImageUrl: user.profileImageUrl,
             },
             deleted: false,
-            createdAt: admin.firestore.FieldValue.serverTimestamp() as any,
+            createdAt: now,
         };
 
         const createdReply = await createReply(newReply);
@@ -69,7 +70,7 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
 
         const updatedData: Partial<Reply> = {
             reply,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp() as any,
+            updatedAt: now,
         };
 
         const updatedReplyDoc = await updateReply(replyId, updatedData);

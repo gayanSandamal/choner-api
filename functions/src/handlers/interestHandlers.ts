@@ -14,6 +14,7 @@ import {
 } from '../services/interestService';
 import { GetPaginatedInterestsResponse, Interest } from '../types/Interest';
 import { PostVisibilityStatus } from '../types/Post';
+import { now } from '../utils/commonUtils';
 
 // Create Interest Handler
 export const createInterestHandler = functions.https.onCall(async (data, context) => {
@@ -29,7 +30,7 @@ export const createInterestHandler = functions.https.onCall(async (data, context
             title,
             description,
             createdBy: user.uid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp() as any,
+            createdAt: now,
             visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
             deleted: false,
             votes: [],
@@ -78,7 +79,7 @@ export const updateInterestHandler = functions.https.onCall(async (data, context
             description,
             visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || existingInterest.visibility,
             scheduledAt: scheduledAt ? new Date(scheduledAt) : existingInterest.scheduledAt,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
+            updatedAt: now,
         };
 
         const updatedInterest = await updateInterest(id, updatedData);

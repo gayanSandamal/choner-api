@@ -7,6 +7,7 @@ import { getAuthenticatedUser } from '../utils/authUtils';
 import { createComment, updateComment, deleteComment } from '../services/commentService';
 import { handleError } from '../utils/errorHandler';
 import { Comment } from '../types/Comment';
+import { now } from '../utils/commonUtils';
 
 const COLLECTION = 'communityPostComments';
 
@@ -23,7 +24,7 @@ export const createCommentHandler = functions.https.onCall(async (data, context)
                 displayName: user.displayName,
                 profileImageUrl: user.profileImageUrl,
             },
-            createdAt: admin.firestore.Timestamp.now(),
+            createdAt: now,
             deleted: false,
             id: '',
         };
@@ -61,7 +62,7 @@ export const updateCommentHandler = functions.https.onCall(async (data, context)
 
         const updatedData: Partial<Comment> = {
             comment,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp() as FirebaseFirestore.Timestamp,
+            updatedAt: now,
         };
 
         const updatedCommentDoc = await updateComment(commentId, updatedData);

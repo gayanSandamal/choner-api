@@ -1,6 +1,7 @@
 /* eslint-disable */
 import admin from '../admin/firebaseAdmin';
 import { Email } from '../types/Email';
+import { now } from '../utils/commonUtils';
 
 const MAIL_COLLECTION = 'mail';
 
@@ -12,7 +13,7 @@ export const sendEmail = async (emailData: Email): Promise<void> => {
             text: emailData.text,
             html: emailData.html,
         },
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: now,
     });
 
     console.log(`Email sent to ${emailData.to}`);

@@ -2,6 +2,7 @@
 import admin from '../admin/firebaseAdmin';
 import { CommunityPost, CommunityPostTypes, GetPaginatedCommunityPostsResponse } from '../types/Community';
 import { PostVisibilities, PostVisibilityStatus } from '../types/Post';
+import { now } from '../utils/commonUtils';
 
 const COMMUNITY_COLLECTION = 'community';
 
@@ -100,7 +101,6 @@ export const getPaginatedUserSpecificCommunityPosts = async (
 };
 
 export const publishScheduledCommunityPosts = async (): Promise<void> => {
-    const now = admin.firestore.Timestamp.now();
     const communityRef = admin.firestore().collection(COMMUNITY_COLLECTION);
 
     const scheduledPosts = await communityRef

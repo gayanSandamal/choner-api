@@ -9,6 +9,6 @@ interface Record {
 
 export interface AuditRecord extends Record {
     createdBy: UserInfo;
-    createdAt: Timestamp;
+    createdAt: FirebaseFirestore.Timestamp;
     updatedAt?: Timestamp;
 }
