@@ -8,23 +8,60 @@ import {
     deleteUserFromAuth,
     deleteUserDataFromCollection,
     softDeleteUserDataFromCollection,
+    resendOtp
 } from '../services/userService';
 import { UserDocument, UpdateUserResponse } from '../types/User';
 import { handleError } from '../utils/errorHandler';
-import admin from '../admin/firebaseAdmin';
+import { generateOtp } from '../utils/authUtils';
 
 // Create User Document Handler (Triggered on Auth User Creation)
 export const createUserDocumentHandler = functions.auth.user().onCreate(async (user) => {
     try {
+        // Generate OTP
+        const otp = generateOtp();
+
         const newUser: UserDocument = {
             uid: user.uid,
             email: user.email || '',
             displayName: user.displayName || '',
             emailVerified: user.emailVerified,
         };
-        await createUserDocument(newUser);
+        
+        // Register new user and send OTP
+        await createUserDocument(newUser, otp);
+
+        return {
+            ...newUser,
+            otp
+        }
     } catch (error) {
-        console.error(`Error creating user document: ${error}`);
+        console.error(`Error creating user document or sending OTP: ${error}`);
+        return handleError(error);
+    }
+});
+
+// Resend OTP Handler
+export const resendOtpHandler = functions.https.onCall(async (data, context) => {
+    try {
+        // Check if the user is authenticated
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+        }
+
+        // Extract UID and email from request data
+        const { uid, email } = data;
+
+        if (!uid || !email) {
+            throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: uid or email.');
+        }
+
+        // Call the resendOtp function to generate and send a new OTP
+        await resendOtp(uid, email);
+
+        return { message: 'OTP resent successfully' };
+    } catch (error) {
+        console.error('Error resending OTP:', error);
+        return handleError(error);
     }
 });
 

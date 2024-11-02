@@ -1,5 +1,5 @@
 /* eslint-disable */
-import * as email from "./email";
+import * as email from "./handlers/emailHandlers";
 import * as comments from "./handlers/commentHandlers";
 import * as replies from "./handlers/replyHandlers";
 import * as interst from "./handlers/interestHandlers";
@@ -8,12 +8,15 @@ import * as user from "./handlers/userHandlers";
 
 export const {
     createUserDocumentHandler,
+    resendOtpHandler,
     getUserHandler,
     setUserHandler,
     deleteUserHandler
 } = user;
 
-export const { sendEmail } = email;
+export const {
+    sendEmailHandler
+} = email;
 
 export const {
     createInterestHandler,

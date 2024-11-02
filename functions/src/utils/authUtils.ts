@@ -17,3 +17,8 @@ export const getAuthenticatedUser = async (context: functions.https.CallableCont
 
     return { uid, ...userDoc.data() } as UserInfo;
 };
+
+export const generateOtp = (): string => {
+    // Generates a 6-digit OTP
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
