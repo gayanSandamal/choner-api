@@ -1,49 +1,58 @@
 /* eslint-disable */
-import * as user from "./user";
-import * as email from "./email";
-import * as interest from "./interest";
-import * as community from "./community";
-import * as comments from "./comments";
+import * as email from "./handlers/emailHandlers";
+import * as comments from "./handlers/commentHandlers";
+import * as replies from "./handlers/replyHandlers";
+import * as interst from "./handlers/interestHandlers";
+import * as community from "./handlers/communityHandlers";
+import * as user from "./handlers/userHandlers";
+import * as docsHandler from './handlers/addKeyToDocumentsHandlers';
 
 export const {
-    createUserDocument,
-    getUser,
-    setUser,
-    deleteUser
+    createUserDocumentHandler,
+    resendOtpHandler,
+    getUserHandler,
+    setUserHandler,
+    deleteUserHandler
 } = user;
 
-export const { sendEmail } = email;
+export const {
+    sendEmailHandler
+} = email;
 
 export const {
-    createInterest,
-    publishScheduledInterestsJob,
-    getInterest,
-    getAllInterests,
-    getPaginatedInterests,
-    getPaginatedUserSpecificInterests,
-    updateInterest,
-    deleteInterest
-} = interest;
+    createInterestHandler,
+    updateInterestHandler,
+    deleteInterestHandler,
+    getPaginatedInterestsHandler,
+    getPaginatedUserSpecificInterestsHandler,
+    publishScheduledInterestsJobHandler
+} = interst;
 
 export const {
-    createCommunityPost,
-    publishScheduledCommunityPostJob,
-    getCommunityPost,
-    getPaginatedCommunityPost,
-    getPaginatedUserSpecificCommunityPosts,
-    updateCommunityPost,
-    deleteCommunityPost
+    createCommunityPostHandler,
+    updateCommunityPostHandler,
+    deleteCommunityPostHandler,
+    getPaginatedCommunityPostsHandler,
+    getPaginatedUserSpecificCommunityPostsHandler,
+    publishScheduledCommunityPostsHandler
 } = community;
 
 export const {
-    createComment,
-    updateComment,
-    deleteComment,
-    getComments,
-    voteUpvoteComment,
-    createReply,
-    updateReply,
-    deleteReply,
-    getReplies,
-    voteUpvoteReply
+    createCommentHandler,
+    updateCommentHandler,
+    deleteCommentHandler,
+    getCommentsHandler,
+    voteUpvoteCommentHandler
 } = comments;
+
+export const {
+    createReplyHandler,
+    updateReplyHandler,
+    deleteReplyHandler,
+    getRepliesHandler,
+    voteUpvoteReplyHandler
+} = replies;
+
+export const {
+    addKeyToDocumentsHandler
+} = docsHandler;
