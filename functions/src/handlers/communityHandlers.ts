@@ -136,8 +136,8 @@ export const getPaginatedCommunityPostsHandler = functions.https.onCall(async (d
 // Publish Scheduled Community Posts Handler (Scheduled Pub/Sub Function)
 export const publishScheduledCommunityPostsHandler = functions.pubsub.schedule("every 5 minutes").onRun(async () => {
   try {
-    await publishScheduledCommunityPosts();
-    console.log("Scheduled community posts published successfully");
+    const publishedCount = await publishScheduledCommunityPosts();
+    console.log(`${publishedCount} scheduled community posts published successfully`);
     return null;
   } catch (error) {
     console.error("Error publishing scheduled community posts:", error);

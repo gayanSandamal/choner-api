@@ -148,8 +148,8 @@ export const getPaginatedUserSpecificInterestsHandler = functions.https.onCall(a
 // Scheduled function to publish scheduled interests
 export const publishScheduledInterestsJobHandler = functions.pubsub.schedule("every 5 minutes").onRun(async () => {
   try {
-    await publishScheduledInterests();
-    console.log("Scheduled interests published successfully");
+    const publishedCount = await publishScheduledInterests();
+    console.log(`${publishedCount} scheduled interests published successfully`);
     return null;
   } catch (error) {
     console.error("Error publishing scheduled interests:", error);

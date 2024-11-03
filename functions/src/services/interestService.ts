@@ -2,7 +2,7 @@
 import admin from '../admin/firebaseAdmin';
 import { Interest, GetPaginatedInterestsResponse } from '../types/Interest';
 import { PostVisibilities, PostVisibilityStatus } from '../types/Post';
-import { now } from '../utils/commonUtils';
+import { nowTimestamp } from '../utils/commonUtils';
 
 const INTEREST_COLLECTION = 'interests';
 
@@ -97,12 +97,12 @@ export const getPaginatedUserSpecificInterests = async (
 };
 
 // Publish scheduled interests function for a scheduled job
-export const publishScheduledInterests = async (): Promise<void> => {
+export const publishScheduledInterests = async (): Promise<number> => {
     const interestsRef = admin.firestore().collection(INTEREST_COLLECTION);
 
     const scheduledInterests = await interestsRef
         .where('visibility', '==', PostVisibilityStatus.Scheduled)
-        .where('scheduledAt', '<=', now)
+        .where('scheduledAt', '<=', nowTimestamp)
         .where('deleted', '==', false)
         .get();
 
@@ -113,4 +113,5 @@ export const publishScheduledInterests = async (): Promise<void> => {
     });
 
     await batch.commit();
+    return scheduledInterests.size || 0;
 };

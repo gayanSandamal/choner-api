@@ -2,7 +2,7 @@
 import admin from '../admin/firebaseAdmin';
 import { CommunityPost, CommunityPostTypes, GetPaginatedCommunityPostsResponse } from '../types/Community';
 import { PostVisibilities, PostVisibilityStatus } from '../types/Post';
-import { now } from '../utils/commonUtils';
+import { nowTimestamp } from '../utils/commonUtils';
 
 const COMMUNITY_COLLECTION = 'community';
 
@@ -100,12 +100,12 @@ export const getPaginatedUserSpecificCommunityPosts = async (
     };
 };
 
-export const publishScheduledCommunityPosts = async (): Promise<void> => {
+export const publishScheduledCommunityPosts = async (): Promise<number> => {
     const communityRef = admin.firestore().collection(COMMUNITY_COLLECTION);
 
     const scheduledPosts = await communityRef
         .where('visibility', '==', 'scheduled')
-        .where('scheduledAt', '<=', now)
+        .where('scheduledAt', '<=', nowTimestamp)
         .where('deleted', '==', false)
         .get();
 
@@ -116,4 +116,5 @@ export const publishScheduledCommunityPosts = async (): Promise<void> => {
     });
 
     await batch.commit();
+    return scheduledPosts.size || 0;
 };
