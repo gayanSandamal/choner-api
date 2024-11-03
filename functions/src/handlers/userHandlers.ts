@@ -12,7 +12,7 @@ import {
 } from '../services/userService';
 import { UserDocument, UpdateUserResponse } from '../types/User';
 import { handleError } from '../utils/errorHandler';
-import { generateOtp } from '../utils/authUtils';
+import { generateOtp, getAuthenticatedUser } from '../utils/authUtils';
 
 // Create User Document Handler (Triggered on Auth User Creation)
 export const createUserDocumentHandler = functions.auth.user().onCreate(async (user) => {
@@ -44,9 +44,7 @@ export const createUserDocumentHandler = functions.auth.user().onCreate(async (u
 export const resendOtpHandler = functions.https.onCall(async (data, context) => {
     try {
         // Check if the user is authenticated
-        if (!context.auth) {
-            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
-        }
+        await getAuthenticatedUser(context);
 
         // Extract UID and email from request data
         const { uid, email } = data;
@@ -68,9 +66,7 @@ export const resendOtpHandler = functions.https.onCall(async (data, context) => 
 // Get User Document Handler
 export const getUserHandler = functions.https.onCall(async (data, context) => {
     try {
-        if (!context.auth) {
-            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
-        }
+        await getAuthenticatedUser(context);
 
         const { uid } = data;
         const userDoc = await getUserDocument(uid);
@@ -88,9 +84,7 @@ export const getUserHandler = functions.https.onCall(async (data, context) => {
 // Update User Document Handler
 export const setUserHandler = functions.https.onCall(async (data, context) => {
     try {
-        if (!context.auth) {
-            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
-        }
+        await getAuthenticatedUser(context);
 
         const { uid, ...updateData } = data;
         await updateUserDocument(uid, updateData);
@@ -107,9 +101,7 @@ export const setUserHandler = functions.https.onCall(async (data, context) => {
 // This is a hard delete, meaning all user data is deleted from Firestore and Firebase Authentication
 export const deleteUserHandler = functions.https.onCall(async (data, context) => {
     try {
-        if (!context.auth) {
-            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
-        }
+        await getAuthenticatedUser(context);
 
         const { uid, isPermanent = false } = data;
 

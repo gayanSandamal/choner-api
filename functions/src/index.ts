@@ -5,6 +5,7 @@ import * as replies from "./handlers/replyHandlers";
 import * as interst from "./handlers/interestHandlers";
 import * as community from "./handlers/communityHandlers";
 import * as user from "./handlers/userHandlers";
+import * as docsHandler from './handlers/addKeyToDocumentsHandlers';
 
 export const {
     createUserDocumentHandler,
@@ -51,3 +52,7 @@ export const {
     getRepliesHandler,
     voteUpvoteReplyHandler
 } = replies;
+
+export const {
+    addKeyToDocumentsHandler
+} = docsHandler;

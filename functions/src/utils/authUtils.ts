@@ -2,20 +2,26 @@
 import * as functions from 'firebase-functions';
 import admin from '../admin/firebaseAdmin';
 import { UserInfo } from '../types/User';
+import { handleError } from './errorHandler';
 
 export const getAuthenticatedUser = async (context: functions.https.CallableContext) => {
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+    try {
+        if (!context.auth) {
+            throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+        } else {
+            const uid = context.auth.uid;
+            const userDoc = await admin.firestore().collection('users').doc(uid).get();
+        
+            if (!userDoc.exists) {
+                throw new functions.https.HttpsError('not-found', 'User not found.');
+            }
+        
+            return { uid, ...userDoc.data() } as UserInfo;
+        }
+    } catch (error) {
+        handleError(error);
+        throw error;
     }
-
-    const uid = context.auth.uid;
-    const userDoc = await admin.firestore().collection('users').doc(uid).get();
-
-    if (!userDoc.exists) {
-        throw new functions.https.HttpsError('not-found', 'User not found.');
-    }
-
-    return { uid, ...userDoc.data() } as UserInfo;
 };
 
 export const generateOtp = (): string => {
