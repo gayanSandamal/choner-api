@@ -2,13 +2,13 @@ import * as functions from "firebase-functions";
 import {sendEmail} from "../services/emailService";
 import {handleError} from "../utils/errorHandler";
 import {Email} from "../types/Email";
-import {getAuthenticatedUser} from "../utils/authUtils";
 
 // Send Email Handler
 export const sendEmailHandler = functions.https.onCall(async (data, context) => {
   try {
-    // Check if the user is authenticated
-    await getAuthenticatedUser(context);
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+    }
 
     // Get email data from the request
     const {to, subject, text} = data;
