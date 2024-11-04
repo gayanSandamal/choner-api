@@ -103,7 +103,7 @@ export const deleteUserHandler = functions.https.onCall(async (data, context) =>
     try {
         await getAuthenticatedUser(context);
 
-        const { uid, isPermanent = false } = data;
+        const { uid, isPermanent = true } = data;
 
 
         // Soft delete user-related documents from various collections
