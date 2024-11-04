@@ -1,12 +1,13 @@
 import * as functions from "firebase-functions";
 import {batchAddKeyToDocuments} from "../services/firestoreService";
 import {validateAddKeyInput} from "../utils/errorHandler";
-import {getAuthenticatedUser} from "../utils/authUtils";
 
 export const addKeyToDocumentsHandler = functions.https.onCall(
   async (data: any, context: functions.https.CallableContext) => {
     try {
-      await getAuthenticatedUser(context);
+      if (!context.auth) {
+        throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      }
 
       // Validate input data
       const {collectionName, key, value} = validateAddKeyInput(data);

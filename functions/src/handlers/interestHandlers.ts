@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import {getAuthenticatedUser} from "../utils/authUtils";
+import {getAuthenticatedUser, getCreatedUserDTO} from "../utils/authUtils";
 import {handleError} from "../utils/errorHandler";
 import {
   createInterest,
@@ -35,11 +35,7 @@ export const createInterestHandler = functions.https.onCall(async (data, context
       votes: [],
       comments: [],
       enrolments: [],
-      createdUser: {
-        uid: user.uid,
-        displayName: user.displayName,
-        profileImageUrl: user.profileImageUrl,
-      },
+      createdUser: getCreatedUserDTO(user),
       ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
     };
 
@@ -120,7 +116,9 @@ export const deleteInterestHandler = functions.https.onCall(async (data, context
 // Get Paginated Interests Handler
 export const getPaginatedInterestsHandler = functions.https.onCall(async (data, context) => {
   try {
-    await getAuthenticatedUser(context);
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+    }
     const {pageSize = 10, lastVisible, visibility = PostVisibilityStatus.Public} = data;
 
     const response: GetPaginatedInterestsResponse = await getPaginatedInterests(pageSize, lastVisible, visibility);

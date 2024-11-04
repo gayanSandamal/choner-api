@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import {getAuthenticatedUser} from "../utils/authUtils";
+import {getAuthenticatedUser, getCreatedUserDTO} from "../utils/authUtils";
 import {handleError} from "../utils/errorHandler";
 import {
   createCommunityPost,
@@ -35,11 +35,7 @@ export const createCommunityPostHandler = functions.https.onCall(async (data, co
       type,
       votes: [],
       comments: [],
-      createdUser: {
-        uid: user.uid,
-        displayName: user.displayName,
-        profileImageUrl: user.profileImageUrl,
-      },
+      createdUser: getCreatedUserDTO(user),
       ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
     };
 
@@ -121,7 +117,9 @@ export const deleteCommunityPostHandler = functions.https.onCall(async (data, co
 // Get Paginated Community Posts Handler
 export const getPaginatedCommunityPostsHandler = functions.https.onCall(async (data, context) => {
   try {
-    await getAuthenticatedUser(context);
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+    }
     const {type = CommunityPostType.Post, pageSize = 10, lastVisible, visibility = PostVisibilityStatus.Public} = data;
 
     const response: GetPaginatedCommunityPostsResponse = await getPaginatedCommunityPosts(
