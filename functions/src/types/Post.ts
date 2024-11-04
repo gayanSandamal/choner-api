@@ -1,9 +1,8 @@
-/* eslint-disable */
-import { UserInfo } from "./User";
+import {UserInfo} from "./User";
 
 export enum PostVisibilityStatus {
-    Public = 'public',
-    Scheduled = 'scheduled'
+    Public = "public",
+    Scheduled = "scheduled"
 }
 
 export type PostVisibilities = PostVisibilityStatus.Public | PostVisibilityStatus.Scheduled;

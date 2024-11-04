@@ -26,8 +26,11 @@ module.exports = {
     "import",
   ],
   rules: {
-    "quotes": ["error", "double"],
+    "object-curly-spacing": ["error", "never"], // Adjust to "never" if needed
+    "quotes": ["error", "double"], // Use "single" for single quotes
     "import/no-unresolved": 0,
     "indent": ["error", 2],
+    "max-len": ["error", {"code": 130}], // Set max line length to 100, change as desired
+    "no-extra-semi": "error",
   },
 };

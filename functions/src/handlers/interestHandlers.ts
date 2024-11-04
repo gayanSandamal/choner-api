@@ -1,4 +1,3 @@
-/* eslint-disable */
 import * as functions from "firebase-functions";
 import {getAuthenticatedUser} from "../utils/authUtils";
 import {handleError} from "../utils/errorHandler";
