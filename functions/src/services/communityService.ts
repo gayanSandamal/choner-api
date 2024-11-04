@@ -1,7 +1,7 @@
-import admin from "../admin/firebaseAdmin";
-import {CommunityPost, CommunityPostTypes, GetPaginatedCommunityPostsResponse} from "../types/Community";
-import {PostVisibilities, PostVisibilityStatus} from "../types/Post";
-import {nowTimestamp} from "../utils/commonUtils";
+/* eslint-disable */
+import admin from '../admin/firebaseAdmin';
+import { CommunityPost, CommunityPostTypes, GetPaginatedCommunityPostsResponse } from '../types/Community';
+import { PostVisibilities, PostVisibilityStatus } from '../types/Post';
 
 const COMMUNITY_COLLECTION = "community";
 
@@ -102,11 +102,11 @@ export const getPaginatedUserSpecificCommunityPosts = async (
 export const publishScheduledCommunityPosts = async (): Promise<number> => {
   const communityRef = admin.firestore().collection(COMMUNITY_COLLECTION);
 
-  const scheduledPosts = await communityRef
-    .where("visibility", "==", "scheduled")
-    .where("scheduledAt", "<=", nowTimestamp)
-    .where("deleted", "==", false)
-    .get();
+    const scheduledPosts = await communityRef
+        .where('visibility', '==', 'scheduled')
+        .where('scheduledAt', '<=', admin.firestore.Timestamp.now())
+        .where('deleted', '==', false)
+        .get();
 
   const batch = admin.firestore().batch();
 

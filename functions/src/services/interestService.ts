@@ -1,7 +1,7 @@
-import admin from "../admin/firebaseAdmin";
-import {Interest, GetPaginatedInterestsResponse} from "../types/Interest";
-import {PostVisibilities, PostVisibilityStatus} from "../types/Post";
-import {nowTimestamp} from "../utils/commonUtils";
+/* eslint-disable */
+import admin from '../admin/firebaseAdmin';
+import { Interest, GetPaginatedInterestsResponse } from '../types/Interest';
+import { PostVisibilities, PostVisibilityStatus } from '../types/Post';
 
 const INTEREST_COLLECTION = "interests";
 
@@ -99,11 +99,11 @@ export const getPaginatedUserSpecificInterests = async (
 export const publishScheduledInterests = async (): Promise<number> => {
   const interestsRef = admin.firestore().collection(INTEREST_COLLECTION);
 
-  const scheduledInterests = await interestsRef
-    .where("visibility", "==", PostVisibilityStatus.Scheduled)
-    .where("scheduledAt", "<=", nowTimestamp)
-    .where("deleted", "==", false)
-    .get();
+    const scheduledInterests = await interestsRef
+        .where('visibility', '==', PostVisibilityStatus.Scheduled)
+        .where('scheduledAt', '<=', admin.firestore.Timestamp.now())
+        .where('deleted', '==', false)
+        .get();
 
   const batch = admin.firestore().batch();
 
