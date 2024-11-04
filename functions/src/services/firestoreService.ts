@@ -2,7 +2,7 @@
 import admin from "../admin/firebaseAdmin";
 
 export const batchAddKeyToDocuments = async (
-  collectionName: string, key: string, value: string | number | boolean
+  collectionName: string, key: string, value: any
 ): Promise<string> => {
   const collectionRef = admin.firestore().collection(collectionName);
   const snapshot = await collectionRef.get();

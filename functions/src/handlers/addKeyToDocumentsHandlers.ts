@@ -4,7 +4,7 @@ import {validateAddKeyInput} from "../utils/errorHandler";
 import {getAuthenticatedUser} from "../utils/authUtils";
 
 export const addKeyToDocumentsHandler = functions.https.onCall(
-  async (data: unknown, context: functions.https.CallableContext) => {
+  async (data: any, context: functions.https.CallableContext) => {
     try {
       await getAuthenticatedUser(context);
 

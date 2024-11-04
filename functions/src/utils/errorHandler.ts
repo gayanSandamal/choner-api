@@ -9,11 +9,7 @@ export const handleError = (error: unknown) => {
   }
 };
 
-export const validateAddKeyInput = (data: {
-  collectionName: string,
-  key: string,
-  value: unknown
-}) => {
+export const validateAddKeyInput = (data: any) => {
   const {collectionName, key, value} = data;
 
   if (!collectionName || !key || typeof value === "undefined") {
