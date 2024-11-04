@@ -134,7 +134,7 @@ export const deleteAllRepliesForComment = async (postId: string, commentId: stri
   } catch (error) {
     return handleError(error);
   }
-}
+};
 
 // Get Replies Handler
 export const getRepliesHandler = functions.https.onCall(async (data) => {

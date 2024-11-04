@@ -13,7 +13,7 @@ import {
 import {CommunityPost, CommunityPostType, GetPaginatedCommunityPostsResponse} from "../types/Community";
 import {PostVisibilityStatus} from "../types/Post";
 import {now} from "../utils/commonUtils";
-import { deleteAllCommentsHandler } from "./commentHandlers";
+import {deleteAllCommentsHandler} from "./commentHandlers";
 
 // Create Community Post Handler
 export const createCommunityPostHandler = functions.https.onCall(async (data, context) => {

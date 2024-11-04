@@ -5,7 +5,7 @@ import {createComment, updateComment, deleteComment} from "../services/commentSe
 import {handleError} from "../utils/errorHandler";
 import {Comment} from "../types/Comment";
 import {now} from "../utils/commonUtils";
-import { deleteAllRepliesForComment } from "./replyHandlers";
+import {deleteAllRepliesForComment} from "./replyHandlers";
 
 const COLLECTION = "communityPostComments";
 
