@@ -19,13 +19,14 @@ const REPLY_COLLECTION = "communityPostReplies";
 export const createReplyHandler = functions.https.onCall(async (data, context) => {
   try {
     const user = await getAuthenticatedUser(context);
-    const {commentId, reply} = data;
+    const {postId, commentId, reply} = data;
 
     if (!commentId || !reply) {
       throw new functions.https.HttpsError("invalid-argument", "Missing required fields: commentId or reply.");
     }
 
     const newReply: Omit<Reply, "id"> = {
+      postId,
       commentId,
       reply,
       createdBy: {
@@ -108,6 +109,32 @@ export const deleteReplyHandler = functions.https.onCall(async (data, context) =
     return handleError(error);
   }
 });
+
+export const deleteAllRepliesForComment = async (postId: string, commentId: string): Promise<number> => {
+  try {
+    if (!commentId || !postId) {
+      throw new Error("Missing required field: commentId.");
+    }
+
+    const repliesRef = admin.firestore().collection(REPLY_COLLECTION);
+
+    const commentReplies = await repliesRef
+      .where("commentId", "==", commentId)
+      .where("postId", "==", postId)
+      .get();
+
+    const batch = admin.firestore().batch();
+
+    commentReplies.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    return commentReplies.size;
+  } catch (error) {
+    return handleError(error);
+  }
+}
 
 // Get Replies Handler
 export const getRepliesHandler = functions.https.onCall(async (data) => {

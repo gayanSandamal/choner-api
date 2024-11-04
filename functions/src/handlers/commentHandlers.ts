@@ -5,6 +5,7 @@ import {createComment, updateComment, deleteComment} from "../services/commentSe
 import {handleError} from "../utils/errorHandler";
 import {Comment} from "../types/Comment";
 import {now} from "../utils/commonUtils";
+import { deleteAllRepliesForComment } from "./replyHandlers";
 
 const COLLECTION = "communityPostComments";
 
@@ -77,9 +78,9 @@ export const deleteCommentHandler = functions.https.onCall(async (data, context)
   try {
     const user = await getAuthenticatedUser(context);
 
-    const {commentId} = data;
+    const {postId, commentId} = data;
 
-    if (!commentId) {
+    if (!commentId || !postId) {
       throw new functions.https.HttpsError("invalid-argument", "Missing required field: commentId.");
     }
 
@@ -98,11 +99,31 @@ export const deleteCommentHandler = functions.https.onCall(async (data, context)
 
     await deleteComment(commentId);
 
-    return {message: "Comment deleted successfully"};
+    const deletedReplyCount = await deleteAllRepliesForComment(postId, commentId);
+
+    return {message: `Comment and ${deletedReplyCount} replies have been deleted successfully`};
   } catch (error) {
     return handleError(error);
   }
 });
+
+export const deleteAllCommentsHandler = async (postId: string): Promise<number> => {
+  try {
+    if (!postId) {
+      throw new functions.https.HttpsError("invalid-argument", "Missing required field: postId.");
+    }
+
+    const comments = await admin.firestore().collection(COLLECTION).where("postId", "==", postId).get();
+    const batch = admin.firestore().batch();
+
+    comments.docs.forEach((doc) => batch.delete(doc.ref));
+
+    await batch.commit();
+    return comments.docs.length;
+  } catch (error) {
+    return handleError(error);
+  }
+};
 
 // Get Comments Handler
 export const getCommentsHandler = functions.https.onCall(async (data) => {

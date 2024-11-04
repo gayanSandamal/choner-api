@@ -13,6 +13,7 @@ import {
 import {CommunityPost, CommunityPostType, GetPaginatedCommunityPostsResponse} from "../types/Community";
 import {PostVisibilityStatus} from "../types/Post";
 import {now} from "../utils/commonUtils";
+import { deleteAllCommentsHandler } from "./commentHandlers";
 
 // Create Community Post Handler
 export const createCommunityPostHandler = functions.https.onCall(async (data, context) => {
@@ -108,7 +109,10 @@ export const deleteCommunityPostHandler = functions.https.onCall(async (data, co
     }
 
     await deleteCommunityPost(id);
-    return {message: "Community post deleted successfully"};
+
+    const deletedCommentCount = await deleteAllCommentsHandler(id);
+
+    return {message: `Community post and ${deletedCommentCount} comments have been deleted successfully`};
   } catch (error) {
     return handleError(error);
   }

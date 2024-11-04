@@ -13,6 +13,7 @@ import {
 import {GetPaginatedInterestsResponse, Interest} from "../types/Interest";
 import {PostVisibilityStatus} from "../types/Post";
 import {now} from "../utils/commonUtils";
+import { deleteAllCommentsHandler } from "./commentHandlers";
 
 // Create Interest Handler
 export const createInterestHandler = functions.https.onCall(async (data, context) => {
@@ -107,7 +108,10 @@ export const deleteInterestHandler = functions.https.onCall(async (data, context
     }
 
     await deleteInterest(id);
-    return {message: "Interest deleted successfully"};
+
+    const deletedCommentCount = await deleteAllCommentsHandler(id);
+    
+    return {message: `Interest and ${deletedCommentCount} comments have been deleted successfully`};
   } catch (error) {
     return handleError(error);
   }
