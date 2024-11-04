@@ -32,5 +32,6 @@ module.exports = {
     "indent": ["error", 2],
     "max-len": ["error", {"code": 130}], // Set max line length to 100, change as desired
     "no-extra-semi": "error",
+    "@typescript-eslint/no-explicit-any": "off",
   },
 };
