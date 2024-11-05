@@ -64,4 +64,6 @@ export const {
   deleteChallengeHandler,
   getPaginatedChallengesHandler,
   toggleChallengeParticipationHandler,
+  bulkApproveChallengeParticipantsHandler,
+  changeChallengeParticipantStatusHandler,
 } = challenge;

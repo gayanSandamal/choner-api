@@ -48,7 +48,6 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
 // Update Reply Handler with Ownership Check
 export const updateReplyHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
     const {replyId, reply} = data;
 
     if (!replyId || !reply) {
@@ -64,7 +63,7 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
 
     const existingReply = existingReplyDoc.data() as Reply;
 
-    if (existingReply.createdBy.uid !== user.uid) {
+    if (existingReply.createdBy.uid !== context.auth?.uid) {
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this reply.');
     }
 
@@ -83,7 +82,6 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
 // Delete Reply Handler with Ownership Check
 export const deleteReplyHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
     const {replyId} = data;
 
     if (!replyId) {
@@ -99,7 +97,7 @@ export const deleteReplyHandler = functions.https.onCall(async (data, context) =
 
     const existingReply = existingReplyDoc.data() as Reply;
 
-    if (existingReply.createdBy.uid !== user.uid) {
+    if (existingReply.createdBy.uid !== context.auth?.uid) {
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this reply.');
     }
 
@@ -155,14 +153,13 @@ export const getRepliesHandler = functions.https.onCall(async (data) => {
 // Vote/Upvote Reply Handler
 export const voteUpvoteReplyHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
     const {replyId} = data;
 
     if (!replyId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: replyId.');
     }
 
-    const result: ToggleVoteResponse = await toggleReplyVote(replyId, user.uid);
+    const result: ToggleVoteResponse = await toggleReplyVote(replyId, context.auth?.uid || '');
     return result;
   } catch (error) {
     return handleError(error);

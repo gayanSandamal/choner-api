@@ -49,7 +49,6 @@ export const createCommunityPostHandler = functions.https.onCall(async (data, co
 // Update Community Post Handler
 export const updateCommunityPostHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
     const {id, title, imageUrls, type = CommunityPostType.Post, scheduledAt, visibility} = data;
 
     if (!id || !title) {
@@ -61,7 +60,7 @@ export const updateCommunityPostHandler = functions.https.onCall(async (data, co
       throw new functions.https.HttpsError('not-found', 'Community post not found.');
     }
 
-    if (existingPost.createdBy !== user.uid) {
+    if (existingPost.createdBy !== context.auth?.uid) {
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this community post.');
     }
 

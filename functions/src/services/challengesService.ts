@@ -1,7 +1,7 @@
 // src/services/challengeService.ts
 
 import admin from '../admin/firebaseAdmin';
-import {Challenge} from '../types/Challenge';
+import {Challenge, UserChallengeStatus} from '../types/Challenge';
 import {UserInfo} from '../types/User';
 
 const CHALLENGE_COLLECTION = 'challenges';
@@ -32,16 +32,18 @@ export const getChallenge = async (challengeId: string): Promise<Challenge | nul
 };
 
 export const getPaginatedChallenges = async (
-  pageSize: number, lastVisible: string | undefined): Promise<{challenges: Challenge[], lastVisible: string | undefined
-  }> => {
+  pageSize: number,
+  lastVisible: string | undefined,
+  uid: string
+): Promise<{ challenges: Challenge[], lastVisible: string | undefined, hasMore: boolean }> => {
   let query = admin.firestore()
-    .collection(CHALLENGE_COLLECTION)
+    .collection('challenges')
     .where('deleted', '==', false)
     .orderBy('createdAt', 'desc')
     .limit(pageSize);
 
   if (lastVisible) {
-    const lastVisibleDoc = await admin.firestore().collection(CHALLENGE_COLLECTION).doc(lastVisible).get();
+    const lastVisibleDoc = await admin.firestore().collection('challenges').doc(lastVisible).get();
     if (lastVisibleDoc.exists) {
       query = query.startAfter(lastVisibleDoc);
     } else {
@@ -50,11 +52,28 @@ export const getPaginatedChallenges = async (
   }
 
   const snapshot = await query.get();
-  const challenges: Challenge[] = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()} as Challenge));
+  const challenges = await Promise.all(snapshot.docs.map(async (doc) => {
+    const data = doc.data() as Challenge;
+    let participantStatus: UserChallengeStatus = UserChallengeStatus.NOT_JOINED; // Default status
+
+    // Check if the user is a participant and get their status
+    if (data.participants) {
+      const participant = data.participants.find((p) => p.uid === uid);
+      if (participant) {
+        participantStatus = participant.participantStatus;
+      }
+    }
+
+    return {
+      ...data,
+      participantStatus, // Attach the participantStatus to the challenge data
+    };
+  }));
 
   return {
     challenges,
     lastVisible: snapshot.docs[snapshot.docs.length - 1]?.id,
+    hasMore: challenges.length === pageSize,
   };
 };
 
@@ -62,8 +81,13 @@ export const getPaginatedChallenges = async (
 const joinChallenge = async (challengeId: string, participant: UserInfo): Promise<any> => {
   const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
 
+  const participation = {
+    ...participant,
+    participantStatus: UserChallengeStatus.JOINED,
+  };
+
   await challengeRef.update({
-    participants: admin.firestore.FieldValue.arrayUnion(participant),
+    participants: admin.firestore.FieldValue.arrayUnion(participation),
   });
 };
 
@@ -89,4 +113,53 @@ export const toggleChallengeParticipation = async (challengeId: string, particip
     await joinChallenge(challengeId, participant);
     return true;
   }
+};
+
+// Get all participants of a challenge
+export const getChallengeParticipants = async (challengeId: string): Promise<UserInfo[]> => {
+  const challengeDoc = await admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId).get();
+  return challengeDoc.data()?.participants || [];
+};
+
+// Bulk approve or reject participantStatus for all participants of a challenge based on uid
+export const bulkApproveChallengeParticipants = async (
+  challengeId: string,
+  uids: string[]
+): Promise<void> => {
+  const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
+  const challengeDoc = await challengeRef.get();
+
+  const participants = challengeDoc.data()?.participants || [];
+
+  const updatedParticipants = participants.map((p: UserInfo) => {
+    if (uids.includes(p.uid)) {
+      return {...p, participantStatus: UserChallengeStatus.COMPLETED, approvedByCreator: true};
+    } else {
+      return {...p, participantStatus: UserChallengeStatus.NOT_COMPLETED, approvedByCreator: true};
+    }
+  });
+
+  await challengeRef.update({participants: updatedParticipants});
+};
+
+// Change participantStatus of a participant based on uid
+export const changeChallengeParticipantStatus = async (
+  challengeId: string,
+  uid: string,
+  participantStatus: UserChallengeStatus
+): Promise<void> => {
+  const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
+  const challengeDoc = await challengeRef.get();
+
+  const participants = challengeDoc.data()?.participants || [];
+
+  const updatedParticipants = participants.map((p: UserInfo) => {
+    if (p.uid === uid) {
+      return {...p, participantStatus};
+    } else {
+      return p;
+    }
+  });
+
+  await challengeRef.update({participants: updatedParticipants});
 };

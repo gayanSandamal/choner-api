@@ -31,6 +31,10 @@ export enum ChallengeType {
 
 type ChallengeTypes = ChallengeType.VIRTUAL | ChallengeType.ON_LOCATION
 
+export interface Participant extends UserInfo {
+    participantStatus: UserChallengeStatuses;
+}
+
 export interface Challenge {
     id: string;
     description: string;
@@ -44,6 +48,7 @@ export interface Challenge {
     participantStatus: UserChallengeStatuses;
     participationRangeId: number;
     participantLimitReached: boolean;
-    participants?: UserInfo[];
-    deleted: boolean
+    participants?: Participant[];
+    deleted: boolean,
+    approvedByCreator?: boolean
 }
