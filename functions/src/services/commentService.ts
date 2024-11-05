@@ -1,10 +1,10 @@
-import admin from "../admin/firebaseAdmin";
-import {Comment, GetCommentsResponse} from "../types/Comment";
-import {ToggleVoteResponse} from "../types/CommentsReplies";
+import admin from '../admin/firebaseAdmin';
+import {Comment, GetCommentsResponse} from '../types/Comment';
+import {ToggleVoteResponse} from '../types/CommentsReplies';
 
-const commentCollection = "communityPost";
+const commentCollection = 'communityPost';
 
-export const createComment = async (comment: Omit<Comment, "id">): Promise<Comment> => {
+export const createComment = async (comment: Omit<Comment, 'id'>): Promise<Comment> => {
   const commentRef = admin.firestore().collection(`${commentCollection}Comments`).doc();
   const newComment: Comment = {...comment, id: commentRef.id};
   await commentRef.set(newComment);
@@ -32,9 +32,9 @@ export const getComments = async (
 ): Promise<GetCommentsResponse> => {
   let query = admin.firestore()
     .collection(`${commentCollection}Comments`)
-    .where("postId", "==", postId)
-    .where("deleted", "==", false)
-    .orderBy("createdAt", "desc")
+    .where('postId', '==', postId)
+    .where('deleted', '==', false)
+    .orderBy('createdAt', 'desc')
     .limit(pageSize);
 
   if (lastVisible) {
@@ -42,7 +42,7 @@ export const getComments = async (
     if (lastVisibleDoc.exists) {
       query = query.startAfter(lastVisibleDoc);
     } else {
-      throw new Error("Invalid lastVisible document ID.");
+      throw new Error('Invalid lastVisible document ID.');
     }
   }
 
@@ -64,7 +64,7 @@ export const toggleCommentVote = async (
   const commentDoc = await commentRef.get();
 
   if (!commentDoc.exists) {
-    throw new Error("Comment not found.");
+    throw new Error('Comment not found.');
   }
 
   const commentData = commentDoc.data() as Comment;
@@ -72,9 +72,9 @@ export const toggleCommentVote = async (
 
   if (likes.includes(userId)) {
     await commentRef.update({likes: admin.firestore.FieldValue.arrayRemove(userId)});
-    return {message: "Comment unliked successfully"};
+    return {message: 'Comment unliked successfully'};
   } else {
     await commentRef.update({likes: admin.firestore.FieldValue.arrayUnion(userId)});
-    return {message: "Comment liked successfully"};
+    return {message: 'Comment liked successfully'};
   }
 };

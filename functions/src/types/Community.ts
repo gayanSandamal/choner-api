@@ -1,8 +1,8 @@
-import {PaginatedResponse, Post} from "./Post";
+import {PaginatedResponse, Post} from './Post';
 
 export enum CommunityPostType {
-    Post = "post",
-    Question = "question"
+    Post = 'post',
+    Question = 'question'
 }
 
 export type CommunityPostTypes = CommunityPostType.Post | CommunityPostType.Question;

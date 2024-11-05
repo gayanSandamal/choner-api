@@ -1,19 +1,19 @@
-import * as functions from "firebase-functions";
-import admin from "./../admin/firebaseAdmin";
-import {getAuthenticatedUser} from "../utils/authUtils";
-import {handleError} from "../utils/errorHandler";
+import * as functions from 'firebase-functions';
+import admin from './../admin/firebaseAdmin';
+import {getAuthenticatedUser} from '../utils/authUtils';
+import {handleError} from '../utils/errorHandler';
 import {
   createReply,
   updateReply,
   deleteReply,
   getReplies,
   toggleReplyVote,
-} from "../services/replyService";
-import {Reply, GetRepliesResponse} from "../types/Reply";
-import {ToggleVoteResponse} from "../types/CommentsReplies";
-import {now} from "../utils/commonUtils";
+} from '../services/replyService';
+import {Reply, GetRepliesResponse} from '../types/Reply';
+import {ToggleVoteResponse} from '../types/CommentsReplies';
+import {now} from '../utils/commonUtils';
 
-const REPLY_COLLECTION = "communityPostReplies";
+const REPLY_COLLECTION = 'communityPostReplies';
 
 // Create Reply Handler
 export const createReplyHandler = functions.https.onCall(async (data, context) => {
@@ -22,10 +22,10 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
     const {postId, commentId, reply} = data;
 
     if (!commentId || !reply) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required fields: commentId or reply.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: commentId or reply.');
     }
 
-    const newReply: Omit<Reply, "id"> = {
+    const newReply: Omit<Reply, 'id'> = {
       postId,
       commentId,
       reply,
@@ -39,7 +39,7 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
     };
 
     const createdReply = await createReply(newReply);
-    return {message: "Reply created successfully", data: createdReply};
+    return {message: 'Reply created successfully', data: createdReply};
   } catch (error) {
     return handleError(error);
   }
@@ -52,20 +52,20 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
     const {replyId, reply} = data;
 
     if (!replyId || !reply) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required fields: replyId or reply.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: replyId or reply.');
     }
 
     // Fetch the existing reply to verify ownership
     const existingReplyDoc = await admin.firestore().collection(REPLY_COLLECTION).doc(replyId).get();
 
     if (!existingReplyDoc.exists) {
-      throw new functions.https.HttpsError("not-found", "Reply not found.");
+      throw new functions.https.HttpsError('not-found', 'Reply not found.');
     }
 
     const existingReply = existingReplyDoc.data() as Reply;
 
     if (existingReply.createdBy.uid !== user.uid) {
-      throw new functions.https.HttpsError("permission-denied", "You do not have permission to update this reply.");
+      throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this reply.');
     }
 
     const updatedData: Partial<Reply> = {
@@ -74,7 +74,7 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
     };
 
     const updatedReplyDoc = await updateReply(replyId, updatedData);
-    return {message: "Reply updated successfully", data: updatedReplyDoc.data()};
+    return {message: 'Reply updated successfully', data: updatedReplyDoc.data()};
   } catch (error) {
     return handleError(error);
   }
@@ -87,24 +87,24 @@ export const deleteReplyHandler = functions.https.onCall(async (data, context) =
     const {replyId} = data;
 
     if (!replyId) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required field: replyId.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required field: replyId.');
     }
 
     // Fetch the existing reply to verify ownership
     const existingReplyDoc = await admin.firestore().collection(REPLY_COLLECTION).doc(replyId).get();
 
     if (!existingReplyDoc.exists) {
-      throw new functions.https.HttpsError("not-found", "Reply not found.");
+      throw new functions.https.HttpsError('not-found', 'Reply not found.');
     }
 
     const existingReply = existingReplyDoc.data() as Reply;
 
     if (existingReply.createdBy.uid !== user.uid) {
-      throw new functions.https.HttpsError("permission-denied", "You do not have permission to delete this reply.");
+      throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this reply.');
     }
 
     await deleteReply(replyId);
-    return {message: "Reply deleted successfully"};
+    return {message: 'Reply deleted successfully'};
   } catch (error) {
     return handleError(error);
   }
@@ -113,14 +113,14 @@ export const deleteReplyHandler = functions.https.onCall(async (data, context) =
 export const deleteAllRepliesForComment = async (postId: string, commentId: string): Promise<number> => {
   try {
     if (!commentId || !postId) {
-      throw new Error("Missing required field: commentId.");
+      throw new Error('Missing required field: commentId.');
     }
 
     const repliesRef = admin.firestore().collection(REPLY_COLLECTION);
 
     const commentReplies = await repliesRef
-      .where("commentId", "==", commentId)
-      .where("postId", "==", postId)
+      .where('commentId', '==', commentId)
+      .where('postId', '==', postId)
       .get();
 
     const batch = admin.firestore().batch();
@@ -142,7 +142,7 @@ export const getRepliesHandler = functions.https.onCall(async (data) => {
     const {commentId, pageSize = 10, lastVisible} = data;
 
     if (!commentId) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required field: commentId.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required field: commentId.');
     }
 
     const replies: GetRepliesResponse = await getReplies(commentId, pageSize, lastVisible);
@@ -159,7 +159,7 @@ export const voteUpvoteReplyHandler = functions.https.onCall(async (data, contex
     const {replyId} = data;
 
     if (!replyId) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required field: replyId.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required field: replyId.');
     }
 
     const result: ToggleVoteResponse = await toggleReplyVote(replyId, user.uid);

@@ -1,4 +1,4 @@
-import {PaginatedResponse, Post} from "./Post";
+import {PaginatedResponse, Post} from './Post';
 
 export interface Interest extends Post {
     description: string;

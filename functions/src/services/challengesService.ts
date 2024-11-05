@@ -1,11 +1,12 @@
 // src/services/challengeService.ts
 
-import admin from "../admin/firebaseAdmin";
-import {Challenge} from "../types/Challenge";
+import admin from '../admin/firebaseAdmin';
+import {Challenge} from '../types/Challenge';
+import {UserInfo} from '../types/User';
 
-const CHALLENGE_COLLECTION = "challenges";
+const CHALLENGE_COLLECTION = 'challenges';
 
-export const createChallenge = async (challengeData: Omit<Challenge, "id">): Promise<Challenge> => {
+export const createChallenge = async (challengeData: Omit<Challenge, 'id'>): Promise<Challenge> => {
   const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc();
   const newChallenge: Challenge = {...challengeData, id: challengeRef.id};
   await challengeRef.set(newChallenge);
@@ -35,8 +36,8 @@ export const getPaginatedChallenges = async (
   }> => {
   let query = admin.firestore()
     .collection(CHALLENGE_COLLECTION)
-    .where("deleted", "==", false)
-    .orderBy("createdAt", "desc")
+    .where('deleted', '==', false)
+    .orderBy('createdAt', 'desc')
     .limit(pageSize);
 
   if (lastVisible) {
@@ -44,7 +45,7 @@ export const getPaginatedChallenges = async (
     if (lastVisibleDoc.exists) {
       query = query.startAfter(lastVisibleDoc);
     } else {
-      throw new Error("Invalid lastVisible document ID.");
+      throw new Error('Invalid lastVisible document ID.');
     }
   }
 
@@ -55,4 +56,37 @@ export const getPaginatedChallenges = async (
     challenges,
     lastVisible: snapshot.docs[snapshot.docs.length - 1]?.id,
   };
+};
+
+// Join a challenge by adding the current user to the participants list
+const joinChallenge = async (challengeId: string, participant: UserInfo): Promise<any> => {
+  const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
+
+  await challengeRef.update({
+    participants: admin.firestore.FieldValue.arrayUnion(participant),
+  });
+};
+
+// Leave a challenge by removing the current user from the participants list
+const leaveChallenge = async (challengeId: string, participant: UserInfo): Promise<void> => {
+  const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
+  await challengeRef.update({
+    participants: admin.firestore.FieldValue.arrayRemove(participant),
+  });
+};
+
+// Join or leave a challenge based on the current participation status
+// If the current user is already a participant, they will be removed from the participants list or vice versa
+export const toggleChallengeParticipation = async (challengeId: string, participant: UserInfo): Promise<boolean> => {
+  const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
+  const challengeDoc = await challengeRef.get();
+  const participants = challengeDoc.data()?.participants || [];
+
+  if (participants.some((p: UserInfo) => p.uid === participant.uid)) {
+    await leaveChallenge(challengeId, participant);
+    return false;
+  } else {
+    await joinChallenge(challengeId, participant);
+    return true;
+  }
 };

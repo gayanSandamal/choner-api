@@ -1,12 +1,13 @@
-import * as functions from "firebase-functions";
-import {getAuthenticatedUser, getCreatedUserDTO} from "../utils/authUtils";
-import {handleError} from "../utils/errorHandler";
+import * as functions from 'firebase-functions';
+import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
+import {handleError} from '../utils/errorHandler';
 import {createChallenge, deleteChallenge, getChallenge, getPaginatedChallenges,
-  updateChallenge} from "../services/challengesService";
-import {Challenge} from "../types/Challenge";
-import admin from "../admin/firebaseAdmin";
-import {now} from "../utils/commonUtils";
-import {deleteAllCommentsHandler} from "./commentHandlers";
+  toggleChallengeParticipation,
+  updateChallenge} from '../services/challengesService';
+import {Challenge} from '../types/Challenge';
+import admin from '../admin/firebaseAdmin';
+import {now} from '../utils/commonUtils';
+import {deleteAllCommentsHandler} from './commentHandlers';
 
 // Create Challenge Handler
 export const createChallengeHandler = functions.https.onCall(async (data, context) => {
@@ -16,10 +17,10 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
     const {participantStatus, challengeState, type, participationRangeId, description, location, createdAt, challengeAt} = data;
 
     if (!participantStatus || !challengeState || !type || !participationRangeId || !description || !location || !challengeAt) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required fields.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
     }
 
-    const newChallengeData: Omit<Challenge, "id"> = {
+    const newChallengeData: Omit<Challenge, 'id'> = {
       participantStatus,
       challengeState,
       type,
@@ -34,7 +35,7 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
     };
 
     const createdChallenge = await createChallenge(newChallengeData);
-    return {message: "Challenge created successfully", data: createdChallenge};
+    return {message: 'Challenge created successfully', data: createdChallenge};
   } catch (error) {
     return handleError(error);
   }
@@ -44,7 +45,7 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
 export const updateChallengeHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {id, participantStatus, challengeState, type, participationRangeId, description, location, challengeAt} = data;
@@ -52,12 +53,12 @@ export const updateChallengeHandler = functions.https.onCall(async (data, contex
     if (
       !id || !participantStatus || !challengeState || !type || !participationRangeId || !description || !location || !challengeAt
     ) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required fields.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
     }
 
     const existingChallenge = await getChallenge(id);
     if (!existingChallenge) {
-      throw new functions.https.HttpsError("not-found", "Challenge not found.");
+      throw new functions.https.HttpsError('not-found', 'Challenge not found.');
     }
 
     const updatedChallengeData: Partial<Challenge> = {
@@ -72,7 +73,7 @@ export const updateChallengeHandler = functions.https.onCall(async (data, contex
     };
 
     const updatedChallenge = await updateChallenge(id, updatedChallengeData);
-    return {message: "Challenge updated successfully", data: updatedChallenge};
+    return {message: 'Challenge updated successfully', data: updatedChallenge};
   } catch (error) {
     return handleError(error);
   }
@@ -82,17 +83,17 @@ export const updateChallengeHandler = functions.https.onCall(async (data, contex
 export const deleteChallengeHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {id} = data;
     if (!id) {
-      throw new functions.https.HttpsError("invalid-argument", "Challenge ID is required.");
+      throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
     }
 
     const existingChallenge = await getChallenge(id);
     if (!existingChallenge) {
-      throw new functions.https.HttpsError("not-found", "Challenge not found.");
+      throw new functions.https.HttpsError('not-found', 'Challenge not found.');
     }
 
     await deleteChallenge(id);
@@ -109,20 +110,20 @@ export const deleteChallengeHandler = functions.https.onCall(async (data, contex
 export const getChallengeHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {id} = data;
     if (!id) {
-      throw new functions.https.HttpsError("invalid-argument", "Challenge ID is required.");
+      throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
     }
 
     const challenge = await getChallenge(id);
     if (!challenge) {
-      throw new functions.https.HttpsError("not-found", "Challenge not found.");
+      throw new functions.https.HttpsError('not-found', 'Challenge not found.');
     }
 
-    return {message: "Challenge retrieved successfully", data: challenge};
+    return {message: 'Challenge retrieved successfully', data: challenge};
   } catch (error) {
     return handleError(error);
   }
@@ -132,16 +133,42 @@ export const getChallengeHandler = functions.https.onCall(async (data, context) 
 export const getPaginatedChallengesHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {pageSize, lastVisible} = data;
     if (!pageSize) {
-      throw new functions.https.HttpsError("invalid-argument", "pageSize is required.");
+      throw new functions.https.HttpsError('invalid-argument', 'pageSize is required.');
     }
 
     const {challenges, lastVisible: newLastVisible} = await getPaginatedChallenges(pageSize, lastVisible);
-    return {message: "Challenges retrieved successfully", data: challenges, lastVisible: newLastVisible};
+    return {message: 'Challenges retrieved successfully', data: challenges, lastVisible: newLastVisible};
+  } catch (error) {
+    return handleError(error);
+  }
+});
+
+export const toggleChallengeParticipationHandler = functions.https.onCall(async (data, context) => {
+  try {
+    const user = await getAuthenticatedUser(context);
+
+    const {challengeId} = data;
+    if (!challengeId) {
+      throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
+    }
+
+    const existingChallenge = await getChallenge(challengeId);
+    if (!existingChallenge) {
+      throw new functions.https.HttpsError('not-found', 'Challenge not found.');
+    }
+
+    const participant = getCreatedUserDTO(user);
+    const joined = await toggleChallengeParticipation(challengeId, participant);
+
+    return {
+      message: `Challenge ${joined ? 'joined' : 'left'} successfully`,
+      joined,
+    };
   } catch (error) {
     return handleError(error);
   }

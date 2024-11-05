@@ -1,11 +1,11 @@
-import * as email from "./handlers/emailHandlers";
-import * as comments from "./handlers/commentHandlers";
-import * as replies from "./handlers/replyHandlers";
-import * as interst from "./handlers/interestHandlers";
-import * as community from "./handlers/communityHandlers";
-import * as user from "./handlers/userHandlers";
-import * as docsHandler from "./handlers/addKeyToDocumentsHandlers";
-import * as challenge from "./handlers/challengeHandlers";
+import * as email from './handlers/emailHandlers';
+import * as comments from './handlers/commentHandlers';
+import * as replies from './handlers/replyHandlers';
+import * as interst from './handlers/interestHandlers';
+import * as community from './handlers/communityHandlers';
+import * as user from './handlers/userHandlers';
+import * as docsHandler from './handlers/addKeyToDocumentsHandlers';
+import * as challenge from './handlers/challengeHandlers';
 
 export const {
   createUserDocumentHandler,
@@ -63,4 +63,5 @@ export const {
   updateChallengeHandler,
   deleteChallengeHandler,
   getPaginatedChallengesHandler,
+  toggleChallengeParticipationHandler,
 } = challenge;

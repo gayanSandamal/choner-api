@@ -1,6 +1,6 @@
 
-import {Timestamp} from "firebase-admin/firestore";
-import {UserInfo} from "./User";
+import {Timestamp} from 'firebase-admin/firestore';
+import {UserInfo} from './User';
 
 interface Record {
     id: string;
