@@ -1,10 +1,10 @@
-import admin from "../admin/firebaseAdmin";
-import {ToggleVoteResponse} from "../types/CommentsReplies";
-import {Reply, GetRepliesResponse} from "../types/Reply";
+import admin from '../admin/firebaseAdmin';
+import {ToggleVoteResponse} from '../types/CommentsReplies';
+import {Reply, GetRepliesResponse} from '../types/Reply';
 
-const replyCollection = "communityPost";
+const replyCollection = 'communityPost';
 
-export const createReply = async (reply: Omit<Reply, "id">): Promise<Reply> => {
+export const createReply = async (reply: Omit<Reply, 'id'>): Promise<Reply> => {
   const replyRef = admin.firestore().collection(`${replyCollection}Replies`).doc();
   const newReply: Reply = {...reply, id: replyRef.id};
   await replyRef.set(newReply);
@@ -32,8 +32,8 @@ export const getReplies = async (
 ): Promise<GetRepliesResponse> => {
   let query = admin.firestore()
     .collection(`${replyCollection}Replies`)
-    .where("commentId", "==", commentId)
-    .orderBy("createdAt", "desc")
+    .where('commentId', '==', commentId)
+    .orderBy('createdAt', 'desc')
     .limit(pageSize);
 
   if (lastVisible) {
@@ -41,7 +41,7 @@ export const getReplies = async (
     if (lastVisibleDoc.exists) {
       query = query.startAfter(lastVisibleDoc);
     } else {
-      throw new Error("Invalid lastVisible document ID.");
+      throw new Error('Invalid lastVisible document ID.');
     }
   }
 
@@ -63,7 +63,7 @@ export const toggleReplyVote = async (
   const replyDoc = await replyRef.get();
 
   if (!replyDoc.exists) {
-    throw new Error("Reply not found.");
+    throw new Error('Reply not found.');
   }
 
   const replyData = replyDoc.data() as Reply;
@@ -71,9 +71,9 @@ export const toggleReplyVote = async (
 
   if (likes.includes(userId)) {
     await replyRef.update({likes: admin.firestore.FieldValue.arrayRemove(userId)});
-    return {message: "Reply unliked successfully"};
+    return {message: 'Reply unliked successfully'};
   } else {
     await replyRef.update({likes: admin.firestore.FieldValue.arrayUnion(userId)});
-    return {message: "Reply liked successfully"};
+    return {message: 'Reply liked successfully'};
   }
 };

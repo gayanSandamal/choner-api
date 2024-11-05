@@ -1,5 +1,5 @@
 
-import admin from "../admin/firebaseAdmin";
+import admin from '../admin/firebaseAdmin';
 
 export const batchAddKeyToDocuments = async (
   collectionName: string, key: string, value: any

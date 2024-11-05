@@ -1,4 +1,4 @@
-import * as functions from "firebase-functions";
+import * as functions from 'firebase-functions';
 import {
   createUserDocument,
   getUserDocument,
@@ -8,10 +8,10 @@ import {
   deleteUserDataFromCollection,
   softDeleteUserDataFromCollection,
   resendOtp,
-} from "../services/userService";
-import {UserDocument, UpdateUserResponse} from "../types/User";
-import {handleError} from "../utils/errorHandler";
-import {generateOtp} from "../utils/authUtils";
+} from '../services/userService';
+import {UserDocument, UpdateUserResponse} from '../types/User';
+import {handleError} from '../utils/errorHandler';
+import {generateOtp} from '../utils/authUtils';
 
 // Create User Document Handler (Triggered on Auth User Creation)
 export const createUserDocumentHandler = functions.auth.user().onCreate(async (user) => {
@@ -21,8 +21,8 @@ export const createUserDocumentHandler = functions.auth.user().onCreate(async (u
 
     const newUser: UserDocument = {
       uid: user.uid,
-      email: user.email || "",
-      displayName: user.displayName || "",
+      email: user.email || '',
+      displayName: user.displayName || '',
       emailVerified: user.emailVerified,
     };
 
@@ -43,22 +43,22 @@ export const createUserDocumentHandler = functions.auth.user().onCreate(async (u
 export const resendOtpHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     // Extract UID and email from request data
     const {uid, email} = data;
 
     if (!uid || !email) {
-      throw new functions.https.HttpsError("invalid-argument", "Missing required fields: uid or email.");
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: uid or email.');
     }
 
     // Call the resendOtp function to generate and send a new OTP
     await resendOtp(uid, email);
 
-    return {message: "OTP resent successfully"};
+    return {message: 'OTP resent successfully'};
   } catch (error) {
-    console.error("Error resending OTP:", error);
+    console.error('Error resending OTP:', error);
     return handleError(error);
   }
 });
@@ -67,18 +67,18 @@ export const resendOtpHandler = functions.https.onCall(async (data, context) => 
 export const getUserHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {uid} = data;
     const userDoc = await getUserDocument(uid);
     if (!userDoc) {
-      throw new functions.https.HttpsError("not-found", "User not found.");
+      throw new functions.https.HttpsError('not-found', 'User not found.');
     }
 
     return userDoc;
   } catch (error) {
-    console.error("Error getting user data:", error);
+    console.error('Error getting user data:', error);
     return handleError(error);
   }
 });
@@ -87,16 +87,16 @@ export const getUserHandler = functions.https.onCall(async (data, context) => {
 export const setUserHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {uid, ...updateData} = data;
     await updateUserDocument(uid, updateData);
 
-    const response: UpdateUserResponse = {message: "User data updated successfully"};
+    const response: UpdateUserResponse = {message: 'User data updated successfully'};
     return response;
   } catch (error) {
-    console.error("Error updating user data:", error);
+    console.error('Error updating user data:', error);
     return handleError(error);
   }
 });
@@ -106,7 +106,7 @@ export const setUserHandler = functions.https.onCall(async (data, context) => {
 export const deleteUserHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
-      throw new functions.https.HttpsError("unauthenticated", "Unauthenticated user.");
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {uid, isPermanent = true} = data;
@@ -114,16 +114,16 @@ export const deleteUserHandler = functions.https.onCall(async (data, context) =>
 
     // Soft delete user-related documents from various collections
     if (!isPermanent) {
-      await softDeleteUserDataFromCollection("community", uid);
-      await softDeleteUserDataFromCollection("interests", uid);
-      await softDeleteUserDataFromCollection("comments", uid);
-      await softDeleteUserDataFromCollection("replies", uid);
+      await softDeleteUserDataFromCollection('community', uid);
+      await softDeleteUserDataFromCollection('interests', uid);
+      await softDeleteUserDataFromCollection('comments', uid);
+      await softDeleteUserDataFromCollection('replies', uid);
     } else {
       // Hard delete user-related documents from various collections
-      await deleteUserDataFromCollection("community", uid);
-      await deleteUserDataFromCollection("interests", uid);
-      await deleteUserDataFromCollection("comments", uid);
-      await deleteUserDataFromCollection("replies", uid);
+      await deleteUserDataFromCollection('community', uid);
+      await deleteUserDataFromCollection('interests', uid);
+      await deleteUserDataFromCollection('comments', uid);
+      await deleteUserDataFromCollection('replies', uid);
     }
 
     // Delete user document from the Firestore users collection
@@ -132,10 +132,10 @@ export const deleteUserHandler = functions.https.onCall(async (data, context) =>
     // Delete user from Firebase Authentication
     await deleteUserFromAuth(uid);
 
-    const response: UpdateUserResponse = {message: "User and associated data deleted successfully"};
+    const response: UpdateUserResponse = {message: 'User and associated data deleted successfully'};
     return response;
   } catch (error) {
-    console.error("Error deleting user and associated data:", error);
+    console.error('Error deleting user and associated data:', error);
     return handleError(error);
   }
 });

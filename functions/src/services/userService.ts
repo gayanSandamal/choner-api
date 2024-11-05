@@ -1,10 +1,10 @@
-import admin from "../admin/firebaseAdmin";
-import {UserDocument} from "../types/User";
-import {generateOtp} from "../utils/authUtils";
-import {now} from "../utils/commonUtils";
-import {sendOtpEmail} from "./emailService";
+import admin from '../admin/firebaseAdmin';
+import {UserDocument} from '../types/User';
+import {generateOtp} from '../utils/authUtils';
+import {now} from '../utils/commonUtils';
+import {sendOtpEmail} from './emailService';
 
-const USERS_COLLECTION = "users";
+const USERS_COLLECTION = 'users';
 const OTP_EXPIRATION_MINUTES = 10;
 
 export const registerNewUser = async (user: UserDocument): Promise<void> => {
@@ -37,7 +37,7 @@ export const verifyOtp = async (uid: string, inputOtp: string): Promise<boolean>
   const userDoc = await userRef.get();
 
   if (!userDoc.exists) {
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 
   const userData = userDoc.data();
@@ -48,10 +48,10 @@ export const verifyOtp = async (uid: string, inputOtp: string): Promise<boolean>
   const isOtpExpired = otpCreatedAt && (Date.now() - otpCreatedAt.getTime()) > OTP_EXPIRATION_MINUTES * 60 * 1000;
 
   if (storedOtp === inputOtp && !isOtpExpired) {
-    console.log("OTP verified successfully");
+    console.log('OTP verified successfully');
     return true;
   } else {
-    console.log("OTP is invalid or has expired");
+    console.log('OTP is invalid or has expired');
     return false;
   }
 };
@@ -102,7 +102,7 @@ export const deleteUserFromAuth = async (uid: string): Promise<void> => {
 // Helper function to delete all documents in a collection where `createdBy` matches the `uid`
 export const deleteUserDataFromCollection = async (collectionName: string, uid: string): Promise<void> => {
   const collectionRef = admin.firestore().collection(collectionName);
-  const snapshot = await collectionRef.where("createdBy", "==", uid).get();
+  const snapshot = await collectionRef.where('createdBy', '==', uid).get();
 
   const batch = admin.firestore().batch();
   snapshot.forEach((doc) => batch.delete(doc.ref));
@@ -113,7 +113,7 @@ export const deleteUserDataFromCollection = async (collectionName: string, uid: 
 // Helper function to perform a soft delete by setting `deleted: true` and `deletedAt: Timestamp`
 export const softDeleteUserDataFromCollection = async (collectionName: string, uid: string): Promise<void> => {
   const collectionRef = admin.firestore().collection(collectionName);
-  const snapshot = await collectionRef.where("createdBy", "==", uid).get();
+  const snapshot = await collectionRef.where('createdBy', '==', uid).get();
 
   const batch = admin.firestore().batch();
 
