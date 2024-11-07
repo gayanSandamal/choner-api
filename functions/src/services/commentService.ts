@@ -4,8 +4,8 @@ import {ToggleVoteResponse} from '../types/CommentsReplies';
 
 const commentCollection = 'communityPost';
 
-export const createComment = async (comment: Omit<Comment, 'id'>, type: string): Promise<Comment> => {
-  const commentRef = admin.firestore().collection(`${type || commentCollection}Comments`).doc();
+export const createComment = async (comment: Omit<Comment, 'id'>, type = commentCollection): Promise<Comment> => {
+  const commentRef = admin.firestore().collection(`${type}Comments`).doc();
   const newComment: Comment = {...comment, id: commentRef.id};
   await commentRef.set(newComment);
   return newComment;
@@ -14,15 +14,15 @@ export const createComment = async (comment: Omit<Comment, 'id'>, type: string):
 export const updateComment = async (
   commentId: string,
   updatedData: Partial<Comment>,
-  type: string
+  type = commentCollection
 ): Promise<FirebaseFirestore.DocumentSnapshot<Comment>> => {
-  const commentRef = admin.firestore().collection(`${type || commentCollection}Comments`).doc(commentId);
+  const commentRef = admin.firestore().collection(`${type}Comments`).doc(commentId);
   await commentRef.update(updatedData);
   return commentRef.get() as unknown as FirebaseFirestore.DocumentSnapshot<Comment>;
 };
 
 export const deleteComment = async (commentId: string, type: string): Promise<void> => {
-  const commentRef = admin.firestore().collection(`${type || commentCollection}Comments`).doc(commentId);
+  const commentRef = admin.firestore().collection(`${type}Comments`).doc(commentId);
   await commentRef.delete();
 };
 
@@ -30,17 +30,17 @@ export const getComments = async (
   postId: string,
   pageSize: number,
   lastVisible: string | undefined,
-  type: string
+  type = commentCollection
 ): Promise<GetPaginatedCommentsResponse> => {
   let query = admin.firestore()
-    .collection(`${type || commentCollection}Comments`)
+    .collection(`${type}Comments`)
     .where('postId', '==', postId)
     .where('deleted', '==', false)
     .orderBy('createdAt', 'desc')
     .limit(pageSize);
 
   if (lastVisible) {
-    const lastVisibleDoc = await admin.firestore().collection(`${type || commentCollection}Comments`).doc(lastVisible).get();
+    const lastVisibleDoc = await admin.firestore().collection(`${type}Comments`).doc(lastVisible).get();
     if (lastVisibleDoc.exists) {
       query = query.startAfter(lastVisibleDoc);
     } else {
@@ -61,9 +61,9 @@ export const getComments = async (
 export const toggleCommentVote = async (
   commentId: string,
   userId: string,
-  type: string
+  type = commentCollection
 ): Promise<ToggleVoteResponse> => {
-  const commentRef = admin.firestore().collection(`${type || commentCollection}Comments`).doc(commentId);
+  const commentRef = admin.firestore().collection(`${type}Comments`).doc(commentId);
   const commentDoc = await commentRef.get();
 
   if (!commentDoc.exists) {

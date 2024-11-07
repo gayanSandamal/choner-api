@@ -28,14 +28,13 @@ export const createInterestHandler = functions.https.onCall(async (data, context
     const newInterest: Omit<Interest, 'id'> = {
       title,
       description,
-      createdBy: user.uid,
+      createdBy: getCreatedUserDTO(user),
       createdAt: now,
       visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
       deleted: false,
       votes: [],
       comments: [],
       enrolments: [],
-      createdUser: getCreatedUserDTO(user),
       ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
     };
 
@@ -61,7 +60,7 @@ export const updateInterestHandler = functions.https.onCall(async (data, context
       throw new functions.https.HttpsError('not-found', 'Interest post not found.');
     }
 
-    if (existingInterest.createdBy !== user.uid) {
+    if (existingInterest.createdBy.uid !== user.uid) {
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this interest post.');
     }
 
@@ -99,7 +98,7 @@ export const deleteInterestHandler = functions.https.onCall(async (data, context
       throw new functions.https.HttpsError('not-found', 'Interest post not found.');
     }
 
-    if (existingInterest.createdBy !== user.uid) {
+    if (existingInterest.createdBy.uid !== user.uid) {
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this interest post.');
     }
 

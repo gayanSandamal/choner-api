@@ -10,4 +10,5 @@ export interface AuditRecord extends Record {
     createdBy: UserInfo;
     createdAt: FirebaseFirestore.Timestamp;
     updatedAt?: Timestamp;
+    deleted?: boolean;
 }

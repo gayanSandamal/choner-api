@@ -33,7 +33,7 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
     }
 
-    const createdUser = {
+    const createdBy = {
       ...getCreatedUserDTO(user),
       participantStatus,
     } as Participant;
@@ -46,12 +46,12 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
       location,
       createdAt: now,
       challengeAt: admin.firestore.Timestamp.fromDate(new Date(challengeAt)),
-      createdUser,
+      createdBy,
       participantLimitReached: data.participantLimitReached || false,
       joinAnyone: joinAnyone || false,
       deleted: false,
       approvedByCreator: false,
-      participants: [createdUser],
+      participants: [createdBy],
       participantStatus: UserChallengeStatus.JOINED,
     };
 

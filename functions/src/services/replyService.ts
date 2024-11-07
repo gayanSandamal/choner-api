@@ -4,8 +4,8 @@ import {Reply, GetRepliesResponse} from '../types/Reply';
 
 const replyCollection = 'communityPost';
 
-export const createReply = async (reply: Omit<Reply, 'id'>): Promise<Reply> => {
-  const replyRef = admin.firestore().collection(`${replyCollection}Replies`).doc();
+export const createReply = async (reply: Omit<Reply, 'id'>, type = replyCollection): Promise<Reply> => {
+  const replyRef = admin.firestore().collection(`${type}Replies`).doc();
   const newReply: Reply = {...reply, id: replyRef.id};
   await replyRef.set(newReply);
   return newReply;
@@ -13,31 +13,50 @@ export const createReply = async (reply: Omit<Reply, 'id'>): Promise<Reply> => {
 
 export const updateReply = async (
   replyId: string,
-  updatedData: Partial<Reply>
+  updatedData: Partial<Reply>,
+  type = replyCollection
 ): Promise<FirebaseFirestore.DocumentSnapshot<Reply>> => {
-  const replyRef = admin.firestore().collection(`${replyCollection}Replies`).doc(replyId);
+  const replyRef = admin.firestore().collection(`${type}Replies`).doc(replyId);
   await replyRef.update(updatedData);
   return replyRef.get() as unknown as FirebaseFirestore.DocumentSnapshot<Reply>;
 };
 
-export const deleteReply = async (replyId: string): Promise<void> => {
-  const replyRef = admin.firestore().collection(`${replyCollection}Replies`).doc(replyId);
+export const deleteReply = async (replyId: string, type = replyCollection): Promise<void> => {
+  const replyRef = admin.firestore().collection(`${type}Replies`).doc(replyId);
   await replyRef.delete();
+};
+
+export const deleteAllReplies = async (postId: string, type = replyCollection): Promise<number> => {
+  const repliesRef = admin.firestore().collection(`${type}Replies`);
+
+  const postReplies = await repliesRef
+    .where('postId', '==', postId)
+    .get();
+
+  const batch = admin.firestore().batch();
+
+  postReplies.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  await batch.commit();
+  return postReplies.size;
 };
 
 export const getReplies = async (
   commentId: string,
   pageSize: number,
-  lastVisible: string | undefined
+  lastVisible: string | undefined,
+  type = replyCollection
 ): Promise<GetRepliesResponse> => {
   let query = admin.firestore()
-    .collection(`${replyCollection}Replies`)
+    .collection(`${type}Replies`)
     .where('commentId', '==', commentId)
     .orderBy('createdAt', 'desc')
     .limit(pageSize);
 
   if (lastVisible) {
-    const lastVisibleDoc = await admin.firestore().collection(`${replyCollection}Replies`).doc(lastVisible).get();
+    const lastVisibleDoc = await admin.firestore().collection(`${type}Replies`).doc(lastVisible).get();
     if (lastVisibleDoc.exists) {
       query = query.startAfter(lastVisibleDoc);
     } else {
@@ -55,11 +74,21 @@ export const getReplies = async (
   };
 };
 
+export const getReply = async (replyId: string, type = replyCollection): Promise<Reply> => {
+  const replyRef = admin.firestore().collection(`${type}Replies`).doc(replyId);
+  const replyDoc = await replyRef.get();
+  if (!replyDoc.exists) {
+    throw new Error('Reply not found.');
+  }
+  return replyDoc.data() as Reply;
+};
+
 export const toggleReplyVote = async (
   replyId: string,
-  userId: string
+  userId: string,
+  type = replyCollection
 ): Promise<ToggleVoteResponse> => {
-  const replyRef = admin.firestore().collection(`${replyCollection}Replies`).doc(replyId);
+  const replyRef = admin.firestore().collection(`${type}Replies`).doc(replyId);
   const replyDoc = await replyRef.get();
 
   if (!replyDoc.exists) {

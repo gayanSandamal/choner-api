@@ -45,7 +45,7 @@ export interface Challenge {
     challengeAt?: FirebaseFirestore.Timestamp;
     createdAt: FirebaseFirestore.Timestamp;
     updatedAt?: FirebaseFirestore.Timestamp;
-    createdUser: UserInfo;
+    createdBy: UserInfo;
     joinAnyone: boolean;
     participantStatus: UserChallengeStatuses;
     participationRangeId: number;

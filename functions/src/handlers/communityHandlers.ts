@@ -27,7 +27,7 @@ export const createCommunityPostHandler = functions.https.onCall(async (data, co
 
     const newPost = {
       title,
-      createdBy: user.uid,
+      createdBy: getCreatedUserDTO(user),
       createdAt: now,
       deleted: false,
       visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
@@ -35,7 +35,6 @@ export const createCommunityPostHandler = functions.https.onCall(async (data, co
       type,
       votes: [],
       comments: [],
-      createdUser: getCreatedUserDTO(user),
       ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
     };
 
@@ -60,7 +59,7 @@ export const updateCommunityPostHandler = functions.https.onCall(async (data, co
       throw new functions.https.HttpsError('not-found', 'Community post not found.');
     }
 
-    if (existingPost.createdBy !== context.auth?.uid) {
+    if (existingPost.createdBy.uid !== context.auth?.uid) {
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this community post.');
     }
 
@@ -99,7 +98,7 @@ export const deleteCommunityPostHandler = functions.https.onCall(async (data, co
       throw new functions.https.HttpsError('not-found', 'Community post not found.');
     }
 
-    if (existingPost.createdBy !== user.uid) {
+    if (existingPost.createdBy.uid !== user.uid) {
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this community post.');
     }
 

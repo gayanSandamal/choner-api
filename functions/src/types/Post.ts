@@ -10,14 +10,13 @@ export type PostVisibilities = PostVisibilityStatus.Public | PostVisibilityStatu
 export interface Post {
     id: string;
     title: string;
-    createdBy: string;
+    createdBy: UserInfo;
     createdAt: FirebaseFirestore.Timestamp;
     updatedAt?: FirebaseFirestore.Timestamp;
     scheduledAt?: Date | FirebaseFirestore.Timestamp;
     visibility: PostVisibilities;
     votes: string[];
     comments: string[];
-    createdUser: UserInfo;
 }
 
 export interface PaginatedResponse {

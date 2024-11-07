@@ -1,5 +1,4 @@
 import * as functions from 'firebase-functions';
-import admin from './../admin/firebaseAdmin';
 import {getAuthenticatedUser} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
@@ -8,18 +7,18 @@ import {
   deleteReply,
   getReplies,
   toggleReplyVote,
+  deleteAllReplies,
+  getReply,
 } from '../services/replyService';
 import {Reply, GetRepliesResponse} from '../types/Reply';
 import {ToggleVoteResponse} from '../types/CommentsReplies';
 import {now} from '../utils/commonUtils';
 
-const COLLECTION = 'communityPost';
-
 // Create Reply Handler
 export const createReplyHandler = functions.https.onCall(async (data, context) => {
   try {
     const user = await getAuthenticatedUser(context);
-    const {postId, commentId, reply} = data;
+    const {postId, commentId, reply, type} = data;
 
     if (!commentId || !reply) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: commentId or reply.');
@@ -40,7 +39,7 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
       createdAt,
     };
 
-    const createdReply = await createReply(newReply);
+    const createdReply = await createReply(newReply, type);
     return {
       message: 'Reply created successfully',
       data: {...createdReply, createdAt},
@@ -59,17 +58,13 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: replyId or reply.');
     }
 
-    // Fetch the existing reply to verify ownership
-    const existingReplyDoc = await admin.firestore().collection(`${type || COLLECTION}Replies`).doc(replyId).get();
-
-    if (!existingReplyDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Reply not found.');
+    const existingReply = await getReply(replyId, type);
+    if (!existingReply) {
+      throw new functions.https.HttpsError('not-found', 'Interest post not found.');
     }
 
-    const existingReply = existingReplyDoc.data() as Reply;
-
-    if (existingReply.createdBy.uid !== context.auth?.uid) {
-      throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this reply.');
+    if (existingReply.createdBy.uid !== context?.auth?.uid) {
+      throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this interest post.');
     }
 
     const updatedAt = now;
@@ -79,7 +74,7 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
       updatedAt,
     };
 
-    const updatedReplyDoc = await updateReply(replyId, updatedData);
+    const updatedReplyDoc = await updateReply(replyId, updatedData, type);
     return {
       message: 'Reply updated successfully',
       data: {...updatedReplyDoc.data(), updatedAt},
@@ -98,20 +93,16 @@ export const deleteReplyHandler = functions.https.onCall(async (data, context) =
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: replyId.');
     }
 
-    // Fetch the existing reply to verify ownership
-    const existingReplyDoc = await admin.firestore().collection(`${type || COLLECTION}Replies`).doc(replyId).get();
-
-    if (!existingReplyDoc.exists) {
-      throw new functions.https.HttpsError('not-found', 'Reply not found.');
+    const existingReply = await getReply(replyId, type);
+    if (!existingReply) {
+      throw new functions.https.HttpsError('not-found', 'Interest post not found.');
     }
 
-    const existingReply = existingReplyDoc.data() as Reply;
-
-    if (existingReply.createdBy.uid !== context.auth?.uid) {
-      throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this reply.');
+    if (existingReply.createdBy.uid !== context?.auth?.uid) {
+      throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this interest post.');
     }
 
-    await deleteReply(replyId);
+    await deleteReply(replyId, type);
     return {message: 'Reply deleted successfully'};
   } catch (error) {
     return handleError(error);
@@ -124,21 +115,8 @@ export const deleteAllRepliesForComment = async (postId: string, commentId: stri
       throw new Error('Missing required field: commentId.');
     }
 
-    const repliesRef = admin.firestore().collection(`${type || COLLECTION}Replies`);
-
-    const commentReplies = await repliesRef
-      .where('commentId', '==', commentId)
-      .where('postId', '==', postId)
-      .get();
-
-    const batch = admin.firestore().batch();
-
-    commentReplies.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-
-    await batch.commit();
-    return commentReplies.size;
+    const commentRepliesSize = await deleteAllReplies(postId, type);
+    return commentRepliesSize;
   } catch (error) {
     return handleError(error);
   }
@@ -147,13 +125,13 @@ export const deleteAllRepliesForComment = async (postId: string, commentId: stri
 // Get Replies Handler
 export const getRepliesHandler = functions.https.onCall(async (data) => {
   try {
-    const {commentId, pageSize = 10, lastVisible} = data;
+    const {commentId, pageSize = 10, lastVisible, type} = data;
 
     if (!commentId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: commentId.');
     }
 
-    const replies: GetRepliesResponse = await getReplies(commentId, pageSize, lastVisible);
+    const replies: GetRepliesResponse = await getReplies(commentId, pageSize, lastVisible, type);
     return replies;
   } catch (error) {
     return handleError(error);
