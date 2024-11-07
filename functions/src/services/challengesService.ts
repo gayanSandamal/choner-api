@@ -67,7 +67,7 @@ export const getPaginatedChallenges = async (
     const response = {
       ...data,
       participantStatus, // Attach the participantStatus to the challenge data
-    }
+    };
 
     delete response.participants; // Remove participants from the response
 
