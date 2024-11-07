@@ -51,6 +51,7 @@ export interface Challenge {
     participationRangeId: number;
     participantLimitReached: boolean;
     participants?: Participant[];
+    participantsToBBeJoined?: Participant[];
     deleted: boolean,
     approvedByCreator?: boolean
 }

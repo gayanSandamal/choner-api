@@ -66,4 +66,5 @@ export const {
   toggleChallengeParticipationHandler,
   bulkApproveChallengeParticipantsHandler,
   changeChallengeParticipantStatusHandler,
+  getParticipantsToBeJoinedHandler,
 } = challenge;

@@ -2,12 +2,14 @@ import * as functions from 'firebase-functions';
 import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
+  approveChallengeParticipants,
   bulkApproveChallengeParticipants,
   changeChallengeParticipantStatus,
   createChallenge,
   deleteChallenge,
   getChallenge,
   getPaginatedChallenges,
+  requestToJoinChallenge,
   toggleChallengeParticipation,
   updateChallenge} from '../services/challengesService';
 import {
@@ -179,13 +181,85 @@ export const toggleChallengeParticipationHandler = functions.https.onCall(async 
       throw new functions.https.HttpsError('not-found', 'Challenge not found.');
     }
 
-    const participant = getCreatedUserDTO(user);
-    const challenge = await toggleChallengeParticipation(challengeId, participant);
+    const joinAnyone = existingChallenge?.joinAnyone || false;
+
+    if (!joinAnyone) {
+      const participant = getCreatedUserDTO(user);
+      const challenge = await toggleChallengeParticipation(
+        existingChallenge,
+        participant,
+        user.uid
+      );
+
+      return {
+        message: `Challenge ${challenge.participantStatus ? 'joined' : 'left'} successfully`,
+        data: challenge,
+      };
+    } else {
+      await requestToJoinChallenge(challengeId, user);
+      return {
+        message: 'Requested from host to approve the participation',
+        data: {
+          ...existingChallenge,
+          participantStatus: UserChallengeStatus.PENDING_REQUEST,
+        },
+      };
+    }
+  } catch (error) {
+    return handleError(error);
+  }
+});
+
+// Get Participants who requested to join the challenge
+export const getParticipantsToBeJoinedHandler = functions.https.onCall(async (data, context) => {
+  try {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+    }
+
+    const {challengeId} = data;
+    if (!challengeId) {
+      throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
+    }
+
+    const existingChallenge = await getChallenge(challengeId);
+    if (!existingChallenge) {
+      throw new functions.https.HttpsError('not-found', 'Challenge not found.');
+    }
 
     return {
-      message: `Challenge ${challenge.participantStatus ? 'joined' : 'left'} successfully`,
-      data: challenge,
+      message: 'Participants who requested to join the challenge retrieved successfully',
+      data: existingChallenge.participantsToBBeJoined,
     };
+  } catch (error) {
+    return handleError(error);
+  }
+});
+
+// Move selected participants from participantsToBBeJoined to participants
+export const approveChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
+  try {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+    }
+
+    const {challengeId, uids}: {challengeId: string, uids: string[]} = data;
+    if (!challengeId || !uids) {
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
+    }
+
+    if (!Array.isArray(uids) || uids.length > 0) {
+      throw new functions.https.HttpsError('invalid-argument', 'uids should be an array of strings or cannot be empty.');
+    }
+
+    const existingChallenge = await getChallenge(challengeId);
+    if (!existingChallenge) {
+      throw new functions.https.HttpsError('not-found', 'Challenge not found or recently removed.');
+    }
+
+    await approveChallengeParticipants(challengeId, uids);
+
+    return {message: 'Challenge participants approved successfully'};
   } catch (error) {
     return handleError(error);
   }
