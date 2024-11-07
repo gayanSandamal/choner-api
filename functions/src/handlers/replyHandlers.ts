@@ -13,7 +13,7 @@ import {Reply, GetRepliesResponse} from '../types/Reply';
 import {ToggleVoteResponse} from '../types/CommentsReplies';
 import {now} from '../utils/commonUtils';
 
-const REPLY_COLLECTION = 'communityPostReplies';
+const COLLECTION = 'communityPost';
 
 // Create Reply Handler
 export const createReplyHandler = functions.https.onCall(async (data, context) => {
@@ -25,6 +25,8 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: commentId or reply.');
     }
 
+    const createdAt = now;
+
     const newReply: Omit<Reply, 'id'> = {
       postId,
       commentId,
@@ -35,11 +37,14 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
         profileImageUrl: user.profileImageUrl,
       },
       deleted: false,
-      createdAt: now,
+      createdAt,
     };
 
     const createdReply = await createReply(newReply);
-    return {message: 'Reply created successfully', data: createdReply};
+    return {
+      message: 'Reply created successfully',
+      data: {...createdReply, createdAt},
+    };
   } catch (error) {
     return handleError(error);
   }
@@ -48,14 +53,14 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
 // Update Reply Handler with Ownership Check
 export const updateReplyHandler = functions.https.onCall(async (data, context) => {
   try {
-    const {replyId, reply} = data;
+    const {replyId, reply, type} = data;
 
     if (!replyId || !reply) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: replyId or reply.');
     }
 
     // Fetch the existing reply to verify ownership
-    const existingReplyDoc = await admin.firestore().collection(REPLY_COLLECTION).doc(replyId).get();
+    const existingReplyDoc = await admin.firestore().collection(`${type || COLLECTION}Replies`).doc(replyId).get();
 
     if (!existingReplyDoc.exists) {
       throw new functions.https.HttpsError('not-found', 'Reply not found.');
@@ -67,13 +72,18 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this reply.');
     }
 
+    const updatedAt = now;
+
     const updatedData: Partial<Reply> = {
       reply,
-      updatedAt: now,
+      updatedAt,
     };
 
     const updatedReplyDoc = await updateReply(replyId, updatedData);
-    return {message: 'Reply updated successfully', data: updatedReplyDoc.data()};
+    return {
+      message: 'Reply updated successfully',
+      data: {...updatedReplyDoc.data(), updatedAt},
+    };
   } catch (error) {
     return handleError(error);
   }
@@ -82,14 +92,14 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
 // Delete Reply Handler with Ownership Check
 export const deleteReplyHandler = functions.https.onCall(async (data, context) => {
   try {
-    const {replyId} = data;
+    const {replyId, type} = data;
 
     if (!replyId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: replyId.');
     }
 
     // Fetch the existing reply to verify ownership
-    const existingReplyDoc = await admin.firestore().collection(REPLY_COLLECTION).doc(replyId).get();
+    const existingReplyDoc = await admin.firestore().collection(`${type || COLLECTION}Replies`).doc(replyId).get();
 
     if (!existingReplyDoc.exists) {
       throw new functions.https.HttpsError('not-found', 'Reply not found.');
@@ -108,13 +118,13 @@ export const deleteReplyHandler = functions.https.onCall(async (data, context) =
   }
 });
 
-export const deleteAllRepliesForComment = async (postId: string, commentId: string): Promise<number> => {
+export const deleteAllRepliesForComment = async (postId: string, commentId: string, type: string): Promise<number> => {
   try {
     if (!commentId || !postId) {
       throw new Error('Missing required field: commentId.');
     }
 
-    const repliesRef = admin.firestore().collection(REPLY_COLLECTION);
+    const repliesRef = admin.firestore().collection(`${type || COLLECTION}Replies`);
 
     const commentReplies = await repliesRef
       .where('commentId', '==', commentId)

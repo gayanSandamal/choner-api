@@ -88,7 +88,7 @@ export const updateInterestHandler = functions.https.onCall(async (data, context
 export const deleteInterestHandler = functions.https.onCall(async (data, context) => {
   try {
     const user = await getAuthenticatedUser(context);
-    const {id} = data;
+    const {id, type} = data;
 
     if (!id) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing interest ID.');
@@ -105,7 +105,7 @@ export const deleteInterestHandler = functions.https.onCall(async (data, context
 
     await deleteInterest(id);
 
-    const deletedCommentCount = await deleteAllCommentsHandler(id);
+    const deletedCommentCount = await deleteAllCommentsHandler(id, type);
 
     return {message: `Interest and ${deletedCommentCount} comments have been deleted successfully`};
   } catch (error) {

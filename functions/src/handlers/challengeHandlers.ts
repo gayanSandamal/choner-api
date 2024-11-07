@@ -10,7 +10,14 @@ import {
   getPaginatedChallenges,
   toggleChallengeParticipation,
   updateChallenge} from '../services/challengesService';
-import {Challenge, ChallengeType, Participant, UserChallengeStatus} from '../types/Challenge';
+import {
+  Challenge,
+  ChallengeState,
+  ChallengeType,
+  GetPaginatedChallengesResponse,
+  Participant,
+  UserChallengeStatus,
+} from '../types/Challenge';
 import admin from '../admin/firebaseAdmin';
 import {now} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
@@ -20,9 +27,9 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
   try {
     const user = await getAuthenticatedUser(context);
 
-    const {participantStatus, challengeState, participationRangeId, description, location, createdAt, challengeAt} = data;
+    const {participantStatus, participationRangeId, description, location, joinAnyone, challengeAt} = data;
 
-    if (!participantStatus || !challengeState || !participationRangeId || !description || !location || !challengeAt) {
+    if (!participantStatus || !participationRangeId || !description || !location || !challengeAt) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
     }
 
@@ -32,19 +39,20 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
     } as Participant;
 
     const newChallengeData: Omit<Challenge, 'id'> = {
-      challengeState,
+      challengeState: ChallengeState.SCHEDULED,
       type: ChallengeType.ON_LOCATION,
       participationRangeId,
       description,
       location,
-      createdAt: createdAt || admin.firestore.Timestamp.now(),
+      createdAt: now,
       challengeAt: admin.firestore.Timestamp.fromDate(new Date(challengeAt)),
       createdUser,
       participantLimitReached: data.participantLimitReached || false,
+      joinAnyone: joinAnyone || false,
       deleted: false,
       approvedByCreator: false,
       participants: [createdUser],
-      participantStatus: UserChallengeStatus.NOT_JOINED,
+      participantStatus: UserChallengeStatus.JOINED,
     };
 
     const createdChallenge = await createChallenge(newChallengeData);
@@ -97,7 +105,7 @@ export const deleteChallengeHandler = functions.https.onCall(async (data, contex
       throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
-    const {id} = data;
+    const {id, type} = data;
     if (!id) {
       throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
     }
@@ -109,7 +117,7 @@ export const deleteChallengeHandler = functions.https.onCall(async (data, contex
 
     await deleteChallenge(id);
 
-    const deletedCommentCount = await deleteAllCommentsHandler(id);
+    const deletedCommentCount = await deleteAllCommentsHandler(id, type);
 
     return {message: `Challenge and ${deletedCommentCount} comments have been deleted successfully`};
   } catch (error) {
@@ -147,13 +155,10 @@ export const getPaginatedChallengesHandler = functions.https.onCall(async (data,
       throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
-    const {pageSize, lastVisible} = data;
-    if (!pageSize) {
-      throw new functions.https.HttpsError('invalid-argument', 'pageSize is required.');
-    }
+    const {pageSize = 10, lastVisible} = data;
 
-    const {challenges, lastVisible: newLastVisible} = await getPaginatedChallenges(pageSize, lastVisible, context.auth.uid);
-    return {message: 'Challenges retrieved successfully', data: challenges, lastVisible: newLastVisible};
+    const response: GetPaginatedChallengesResponse = await getPaginatedChallenges(pageSize, lastVisible, context.auth.uid);
+    return response;
   } catch (error) {
     return handleError(error);
   }

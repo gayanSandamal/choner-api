@@ -88,7 +88,7 @@ export const updateCommunityPostHandler = functions.https.onCall(async (data, co
 export const deleteCommunityPostHandler = functions.https.onCall(async (data, context) => {
   try {
     const user = await getAuthenticatedUser(context);
-    const {id} = data;
+    const {id, type} = data;
 
     if (!id) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing community post ID.');
@@ -105,7 +105,7 @@ export const deleteCommunityPostHandler = functions.https.onCall(async (data, co
 
     await deleteCommunityPost(id);
 
-    const deletedCommentCount = await deleteAllCommentsHandler(id);
+    const deletedCommentCount = await deleteAllCommentsHandler(id, type);
 
     return {message: `Community post and ${deletedCommentCount} comments have been deleted successfully`};
   } catch (error) {

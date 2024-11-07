@@ -6,6 +6,6 @@ export interface Comment extends General {
     comment: string;
 }
 
-export interface GetCommentsResponse extends PaginatedResponse {
+export interface GetPaginatedCommentsResponse extends PaginatedResponse {
     comments: Comment[];
 }
