@@ -1,3 +1,4 @@
+import {PaginatedResponse} from './Post';
 import {UserInfo} from './User';
 
 export enum ChallengeState {
@@ -45,10 +46,15 @@ export interface Challenge {
     createdAt: FirebaseFirestore.Timestamp;
     updatedAt?: FirebaseFirestore.Timestamp;
     createdUser: UserInfo;
+    joinAnyone: boolean;
     participantStatus: UserChallengeStatuses;
     participationRangeId: number;
     participantLimitReached: boolean;
     participants?: Participant[];
     deleted: boolean,
     approvedByCreator?: boolean
+}
+
+export interface GetPaginatedChallengesResponse extends PaginatedResponse {
+    challenges: Challenge[];
 }

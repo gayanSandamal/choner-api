@@ -1,22 +1,28 @@
 import * as functions from 'firebase-functions';
 import admin from './../admin/firebaseAdmin';
 import {getAuthenticatedUser} from '../utils/authUtils';
-import {createComment, updateComment, deleteComment} from '../services/commentService';
+import {createComment, updateComment, deleteComment, getComments} from '../services/commentService';
 import {handleError} from '../utils/errorHandler';
-import {Comment} from '../types/Comment';
+import {Comment, GetPaginatedCommentsResponse} from '../types/Comment';
 import {now} from '../utils/commonUtils';
 import {deleteAllRepliesForComment} from './replyHandlers';
 
-const COLLECTION = 'communityPostComments';
+const COLLECTION = 'communityPost';
 
 // Create Comment Handler
 export const createCommentHandler = functions.https.onCall(async (data, context) => {
   try {
     const user = await getAuthenticatedUser(context);
 
+    const {postId, comment, type} = data;
+
+    if (!postId || !comment) {
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: commentId or comment.');
+    }
+
     const newComment: Comment = {
-      postId: data.postId,
-      comment: data.comment,
+      postId: postId,
+      comment: comment,
       createdBy: {
         uid: user.uid,
         displayName: user.displayName,
@@ -27,7 +33,7 @@ export const createCommentHandler = functions.https.onCall(async (data, context)
       id: '',
     };
 
-    const createdComment = await createComment(newComment);
+    const createdComment = await createComment(newComment, type);
     return {message: 'Comment created successfully', data: createdComment};
   } catch (error) {
     return handleError(error);
@@ -39,14 +45,14 @@ export const updateCommentHandler = functions.https.onCall(async (data, context)
   try {
     const user = await getAuthenticatedUser(context);
 
-    const {commentId, comment} = data;
+    const {commentId, comment, type} = data;
 
     if (!commentId || !comment) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: commentId or comment.');
     }
 
     // Fetch the existing comment to verify ownership
-    const existingCommentDoc = await admin.firestore().collection(COLLECTION).doc(commentId).get();
+    const existingCommentDoc = await admin.firestore().collection(`${type || COLLECTION}Comments`).doc(commentId).get();
 
     if (!existingCommentDoc.exists) {
       throw new functions.https.HttpsError('not-found', 'Comment not found.');
@@ -63,7 +69,7 @@ export const updateCommentHandler = functions.https.onCall(async (data, context)
       updatedAt: now,
     };
 
-    const updatedCommentDoc = await updateComment(commentId, updatedData);
+    const updatedCommentDoc = await updateComment(commentId, updatedData, type);
     return {
       message: 'Comment updated successfully',
       data: updatedCommentDoc.data(),
@@ -78,14 +84,14 @@ export const deleteCommentHandler = functions.https.onCall(async (data, context)
   try {
     const user = await getAuthenticatedUser(context);
 
-    const {postId, commentId} = data;
+    const {postId, commentId, type} = data;
 
     if (!commentId || !postId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: commentId.');
     }
 
     // Fetch the existing comment to verify ownership
-    const existingCommentDoc = await admin.firestore().collection(COLLECTION).doc(commentId).get();
+    const existingCommentDoc = await admin.firestore().collection(`${type || COLLECTION}Comments`).doc(commentId).get();
 
     if (!existingCommentDoc.exists) {
       throw new functions.https.HttpsError('not-found', 'Comment not found.');
@@ -97,9 +103,9 @@ export const deleteCommentHandler = functions.https.onCall(async (data, context)
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to delete this comment.');
     }
 
-    await deleteComment(commentId);
+    await deleteComment(commentId, type);
 
-    const deletedReplyCount = await deleteAllRepliesForComment(postId, commentId);
+    const deletedReplyCount = await deleteAllRepliesForComment(postId, commentId, type);
 
     return {message: `Comment and ${deletedReplyCount} replies have been deleted successfully`};
   } catch (error) {
@@ -107,13 +113,13 @@ export const deleteCommentHandler = functions.https.onCall(async (data, context)
   }
 });
 
-export const deleteAllCommentsHandler = async (postId: string): Promise<number> => {
+export const deleteAllCommentsHandler = async (postId: string, type: string): Promise<number> => {
   try {
     if (!postId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: postId.');
     }
 
-    const comments = await admin.firestore().collection(COLLECTION).where('postId', '==', postId).get();
+    const comments = await admin.firestore().collection(`${type || COLLECTION}Comments`).where('postId', '==', postId).get();
     const batch = admin.firestore().batch();
 
     comments.docs.forEach((doc) => batch.delete(doc.ref));
@@ -128,30 +134,15 @@ export const deleteAllCommentsHandler = async (postId: string): Promise<number> 
 // Get Comments Handler
 export const getCommentsHandler = functions.https.onCall(async (data) => {
   try {
-    const {postId, pageSize = 10, lastVisible} = data;
+    const {postId, pageSize = 10, lastVisible, type} = data;
 
     if (!postId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: postId.');
     }
 
-    let query = admin.firestore().collection(COLLECTION)
-      .where('postId', '==', postId)
-      .orderBy('createdAt', 'desc')
-      .limit(pageSize);
+    const response: GetPaginatedCommentsResponse = await getComments(postId, pageSize, lastVisible, type);
 
-    if (lastVisible) {
-      const lastVisibleDoc = await admin.firestore().collection(COLLECTION).doc(lastVisible).get();
-      if (lastVisibleDoc.exists) {
-        query = query.startAfter(lastVisibleDoc);
-      } else {
-        throw new functions.https.HttpsError('invalid-argument', 'Invalid lastVisible document ID.');
-      }
-    }
-
-    const snapshot = await query.get();
-    const comments = snapshot.docs.map((doc) => ({id: doc.id, ...doc.data()}));
-
-    return {comments, lastVisible: snapshot.docs[snapshot.docs.length - 1]?.id || null, hasMore: comments.length === pageSize};
+    return response;
   } catch (error) {
     return handleError(error);
   }
@@ -161,13 +152,13 @@ export const getCommentsHandler = functions.https.onCall(async (data) => {
 export const voteUpvoteCommentHandler = functions.https.onCall(async (data, context) => {
   try {
     const user = await getAuthenticatedUser(context);
-    const {commentId} = data;
+    const {commentId, type} = data;
 
     if (!commentId) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required field: commentId.');
     }
 
-    const commentRef = admin.firestore().collection(COLLECTION).doc(commentId);
+    const commentRef = admin.firestore().collection(`${type || COLLECTION}Comments`).doc(commentId);
     const commentDoc = await commentRef.get();
 
     if (!commentDoc.exists) {

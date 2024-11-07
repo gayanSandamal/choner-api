@@ -35,7 +35,7 @@ export const getPaginatedChallenges = async (
   pageSize: number,
   lastVisible: string | undefined,
   uid: string
-): Promise<{ challenges: Challenge[], lastVisible: string | undefined, hasMore: boolean }> => {
+): Promise<{ challenges: Challenge[], lastVisible: string | null, hasMore: boolean }> => {
   let query = admin.firestore()
     .collection('challenges')
     .where('deleted', '==', false)
@@ -64,6 +64,13 @@ export const getPaginatedChallenges = async (
       }
     }
 
+    const response = {
+      ...data,
+      participantStatus, // Attach the participantStatus to the challenge data
+    }
+
+    delete response.participants; // Remove participants from the response
+
     return {
       ...data,
       participantStatus, // Attach the participantStatus to the challenge data
@@ -72,7 +79,7 @@ export const getPaginatedChallenges = async (
 
   return {
     challenges,
-    lastVisible: snapshot.docs[snapshot.docs.length - 1]?.id,
+    lastVisible: snapshot.docs[snapshot.docs.length - 1]?.id || null,
     hasMore: challenges.length === pageSize,
   };
 };
