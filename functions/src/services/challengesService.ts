@@ -108,17 +108,31 @@ const leaveChallenge = async (challengeId: string, participant: UserInfo): Promi
 
 // Join or leave a challenge based on the current participation status
 // If the current user is already a participant, they will be removed from the participants list or vice versa
-export const toggleChallengeParticipation = async (challengeId: string, participant: UserInfo): Promise<boolean> => {
+export const toggleChallengeParticipation = async (challengeId: string, participant: UserInfo): Promise<Challenge> => {
   const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
   const challengeDoc = await challengeRef.get();
   const participants = challengeDoc.data()?.participants || [];
 
   if (participants.some((p: UserInfo) => p.uid === participant.uid)) {
     await leaveChallenge(challengeId, participant);
-    return false;
+    const challenge = await getChallengeById(challengeId);
+    if (!challenge) {
+      throw new Error('Challenge not found');
+    }
+    return {
+      ...challenge,
+      participantStatus: UserChallengeStatus.JOINED,
+    };
   } else {
     await joinChallenge(challengeId, participant);
-    return true;
+    const challenge = await getChallengeById(challengeId);
+    if (!challenge) {
+      throw new Error('Challenge not found');
+    }
+    return {
+      ...challenge,
+      participantStatus: UserChallengeStatus.NOT_JOINED,
+    };
   }
 };
 
@@ -126,6 +140,12 @@ export const toggleChallengeParticipation = async (challengeId: string, particip
 export const getChallengeParticipants = async (challengeId: string): Promise<UserInfo[]> => {
   const challengeDoc = await admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId).get();
   return challengeDoc.data()?.participants || [];
+};
+
+// Get single challenge by challengeId
+export const getChallengeById = async (challengeId: string): Promise<Challenge | null> => {
+  const challengeDoc = await admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId).get();
+  return challengeDoc.exists ? (challengeDoc.data() as Challenge) : null;
 };
 
 // Bulk approve or reject participantStatus for all participants of a challenge based on uid

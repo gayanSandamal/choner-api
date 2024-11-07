@@ -180,11 +180,11 @@ export const toggleChallengeParticipationHandler = functions.https.onCall(async 
     }
 
     const participant = getCreatedUserDTO(user);
-    const joined = await toggleChallengeParticipation(challengeId, participant);
+    const challenge = await toggleChallengeParticipation(challengeId, participant);
 
     return {
-      message: `Challenge ${joined ? 'joined' : 'left'} successfully`,
-      joined,
+      message: `Challenge ${challenge.participantStatus ? 'joined' : 'left'} successfully`,
+      data: challenge,
     };
   } catch (error) {
     return handleError(error);
