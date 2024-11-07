@@ -10,7 +10,14 @@ import {
   getPaginatedChallenges,
   toggleChallengeParticipation,
   updateChallenge} from '../services/challengesService';
-import {Challenge, ChallengeState, ChallengeType, GetPaginatedChallengesResponse, Participant, UserChallengeStatus} from '../types/Challenge';
+import {
+  Challenge,
+  ChallengeState,
+  ChallengeType,
+  GetPaginatedChallengesResponse,
+  Participant,
+  UserChallengeStatus,
+} from '../types/Challenge';
 import admin from '../admin/firebaseAdmin';
 import {now} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
