@@ -105,7 +105,7 @@ export const deleteChallengeHandler = functions.https.onCall(async (data, contex
       throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
-    const {id} = data;
+    const {id, type} = data;
     if (!id) {
       throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
     }
@@ -117,7 +117,7 @@ export const deleteChallengeHandler = functions.https.onCall(async (data, contex
 
     await deleteChallenge(id);
 
-    const deletedCommentCount = await deleteAllCommentsHandler(id);
+    const deletedCommentCount = await deleteAllCommentsHandler(id, type);
 
     return {message: `Challenge and ${deletedCommentCount} comments have been deleted successfully`};
   } catch (error) {
