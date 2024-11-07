@@ -8,6 +8,8 @@ export const createReply = async (reply: Omit<Reply, 'id'>, type = replyCollecti
   const replyRef = admin.firestore().collection(`${type}Replies`).doc();
   const newReply: Reply = {...reply, id: replyRef.id};
   await replyRef.set(newReply);
+  const postRef = admin.firestore().collection(`${type}Comments`).doc(reply.commentId);
+  await postRef.update({replyCount: admin.firestore.FieldValue.increment(1)});
   return newReply;
 };
 
@@ -23,7 +25,10 @@ export const updateReply = async (
 
 export const deleteReply = async (replyId: string, type = replyCollection): Promise<void> => {
   const replyRef = admin.firestore().collection(`${type}Replies`).doc(replyId);
+  const replyDoc = await replyRef.get();
   await replyRef.delete();
+  const postRef = admin.firestore().collection(`${type}Comments`).doc(replyDoc.data()?.commentId);
+  await postRef.update({replyCount: admin.firestore.FieldValue.increment(-1)});
 };
 
 export const deleteAllReplies = async (postId: string, type = replyCollection): Promise<number> => {

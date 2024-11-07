@@ -15,7 +15,7 @@ export interface Post {
     updatedAt?: FirebaseFirestore.Timestamp;
     scheduledAt?: Date | FirebaseFirestore.Timestamp;
     visibility: PostVisibilities;
-    votes: string[];
+    votes: number;
     comments: string[];
 }
 

@@ -1,6 +1,7 @@
 import admin from '../admin/firebaseAdmin';
 import {Comment, GetPaginatedCommentsResponse} from '../types/Comment';
 import {ToggleVoteResponse} from '../types/CommentsReplies';
+import {splitCamelCase} from '../utils/commonUtils';
 
 const commentCollection = 'communityPost';
 
@@ -8,6 +9,9 @@ export const createComment = async (comment: Omit<Comment, 'id'>, type = comment
   const commentRef = admin.firestore().collection(`${type}Comments`).doc();
   const newComment: Comment = {...comment, id: commentRef.id};
   await commentRef.set(newComment);
+  const collectionName = splitCamelCase(type)[0];
+  const postRef = admin.firestore().collection(collectionName).doc(comment.postId);
+  await postRef.update({commentCount: admin.firestore.FieldValue.increment(1)});
   return newComment;
 };
 
@@ -23,7 +27,11 @@ export const updateComment = async (
 
 export const deleteComment = async (commentId: string, type: string): Promise<void> => {
   const commentRef = admin.firestore().collection(`${type}Comments`).doc(commentId);
+  const commentDoc = await commentRef.get();
   await commentRef.delete();
+  const collectionName = splitCamelCase(type)[0];
+  const postRef = admin.firestore().collection(collectionName).doc(commentDoc.data()?.postId);
+  await postRef.update({commentCount: admin.firestore.FieldValue.increment(-1)});
 };
 
 export const getComments = async (
