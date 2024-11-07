@@ -25,6 +25,8 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: commentId or reply.');
     }
 
+    const createdAt = now
+
     const newReply: Omit<Reply, 'id'> = {
       postId,
       commentId,
@@ -35,11 +37,14 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
         profileImageUrl: user.profileImageUrl,
       },
       deleted: false,
-      createdAt: now,
+      createdAt,
     };
 
     const createdReply = await createReply(newReply);
-    return {message: 'Reply created successfully', data: createdReply};
+    return {
+      message: 'Reply created successfully',
+      data: {...createdReply, createdAt}
+    };
   } catch (error) {
     return handleError(error);
   }
@@ -67,13 +72,18 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this reply.');
     }
 
+    const updatedAt = now
+
     const updatedData: Partial<Reply> = {
       reply,
-      updatedAt: now,
+      updatedAt,
     };
 
     const updatedReplyDoc = await updateReply(replyId, updatedData);
-    return {message: 'Reply updated successfully', data: updatedReplyDoc.data()};
+    return {
+      message: 'Reply updated successfully',
+      data: {...updatedReplyDoc.data(), updatedAt}
+    };
   } catch (error) {
     return handleError(error);
   }

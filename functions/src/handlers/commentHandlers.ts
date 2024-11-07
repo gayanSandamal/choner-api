@@ -20,6 +20,8 @@ export const createCommentHandler = functions.https.onCall(async (data, context)
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: commentId or comment.');
     }
 
+    const createdAt = now;
+
     const newComment: Comment = {
       postId: postId,
       comment: comment,
@@ -28,13 +30,13 @@ export const createCommentHandler = functions.https.onCall(async (data, context)
         displayName: user.displayName,
         profileImageUrl: user.profileImageUrl,
       },
-      createdAt: now,
+      createdAt: createdAt,
       deleted: false,
       id: '',
     };
 
     const createdComment = await createComment(newComment, type);
-    return {message: 'Comment created successfully', data: createdComment};
+    return {message: 'Comment created successfully', data: {...createdComment, createdAt}};
   } catch (error) {
     return handleError(error);
   }
@@ -64,15 +66,17 @@ export const updateCommentHandler = functions.https.onCall(async (data, context)
       throw new functions.https.HttpsError('permission-denied', 'You do not have permission to update this comment.');
     }
 
+    const updatedAt = now;
+
     const updatedData: Partial<Comment> = {
       comment,
-      updatedAt: now,
+      updatedAt,
     };
 
     const updatedCommentDoc = await updateComment(commentId, updatedData, type);
     return {
       message: 'Comment updated successfully',
-      data: updatedCommentDoc.data(),
+      data: {...updatedCommentDoc.data(), updatedAt},
     };
   } catch (error) {
     return handleError(error);
