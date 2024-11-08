@@ -50,7 +50,7 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
       createdAt: now,
       challengeAt: admin.firestore.Timestamp.fromDate(new Date(challengeAt)),
       createdBy,
-      participantLimitReached: data.participantLimitReached || false,
+      participantLimitReached: false,
       joinAnyone: joinAnyone || false,
       deleted: false,
       approvedByCreator: false,
@@ -72,7 +72,7 @@ export const updateChallengeHandler = functions.https.onCall(async (data, contex
       throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
-    const {id, challengeState, participationRangeId, description, location, challengeAt} = data;
+    const {id, challengeState, participationRangeId, description, location, challengeAt, joinAnyone} = data;
 
     if (
       !id || !challengeState || !participationRangeId || !description || !location || !challengeAt
@@ -92,6 +92,7 @@ export const updateChallengeHandler = functions.https.onCall(async (data, contex
       location,
       challengeAt: admin.firestore.Timestamp.fromDate(new Date(challengeAt)),
       updatedAt: now,
+      joinAnyone,
     };
 
     const updatedChallenge = await updateChallenge(id, updatedChallengeData);
@@ -184,7 +185,7 @@ export const toggleChallengeParticipationHandler = functions.https.onCall(async 
 
     const joinAnyone = existingChallenge?.joinAnyone || false;
 
-    if (!joinAnyone) {
+    if (joinAnyone) {
       const participant = getCreatedUserDTO(user);
       const challenge = await toggleChallengeParticipation(
         existingChallenge,
