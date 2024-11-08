@@ -57,6 +57,7 @@ export const getReplies = async (
   let query = admin.firestore()
     .collection(`${type}Replies`)
     .where('commentId', '==', commentId)
+    .where('deleted', '==', false)
     .orderBy('createdAt', 'desc')
     .limit(pageSize);
 
