@@ -19,11 +19,13 @@ import {
   ChallengeType,
   GetPaginatedChallengesResponse,
   Participant,
+  ParticipantRange,
   UserChallengeStatus,
 } from '../types/Challenge';
 import admin from '../admin/firebaseAdmin';
-import {now} from '../utils/commonUtils';
+import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
+import {PARTICIPANT_RANGES} from '../constants/challengeContstants';
 
 // Create Challenge Handler
 export const createChallengeHandler = functions.https.onCall(async (data, context) => {
@@ -91,7 +93,7 @@ export const updateChallengeHandler = functions.https.onCall(async (data, contex
       description,
       location,
       challengeAt: admin.firestore.Timestamp.fromDate(new Date(challengeAt)),
-      updatedAt: now,
+      updatedAt: updatedTime,
       joinAnyone,
     };
 
@@ -184,6 +186,22 @@ export const toggleChallengeParticipationHandler = functions.https.onCall(async 
     }
 
     const joinAnyone = existingChallenge?.joinAnyone || false;
+    const participantSize = existingChallenge?.participants?.length || 0;
+
+    const participantRange = PARTICIPANT_RANGES.find(
+      (range) => Number(range.value) === Number(existingChallenge.participationRangeId)
+    ) as ParticipantRange;
+    const maxParticipants = Number(participantRange?.label.split(' - ')[1]);
+
+    if (participantSize >= maxParticipants) {
+      return {
+        message: 'Participant limit reached',
+        data: {
+          ...existingChallenge,
+          participantLimitReached: true,
+        },
+      };
+    }
 
     if (joinAnyone) {
       const participant = getCreatedUserDTO(user);
@@ -287,6 +305,23 @@ export const bulkApproveChallengeParticipantsHandler = functions.https.onCall(as
     const existingChallenge = await getChallenge(challengeId);
     if (!existingChallenge) {
       throw new functions.https.HttpsError('not-found', 'Challenge not found or recently removed.');
+    }
+
+    const participantSize = existingChallenge?.participants?.length || 0;
+
+    const participantRange = PARTICIPANT_RANGES.find(
+      (range) => Number(range.value) === Number(existingChallenge.participationRangeId)
+    ) as ParticipantRange;
+    const maxParticipants = Number(participantRange?.label.split(' - ')[1]);
+
+    if ((participantSize + uids.length) >= maxParticipants) {
+      return {
+        message: 'Participant limit reached',
+        data: {
+          ...existingChallenge,
+          participantLimitReached: true,
+        },
+      };
     }
 
     await bulkApproveChallengeParticipants(challengeId, uids);

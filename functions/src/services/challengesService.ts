@@ -1,7 +1,8 @@
 // src/services/challengeService.ts
 
 import admin from '../admin/firebaseAdmin';
-import {Challenge, UserChallengeStatus} from '../types/Challenge';
+import {PARTICIPANT_RANGES} from '../constants/challengeContstants';
+import {Challenge, ParticipantRange, UserChallengeStatus} from '../types/Challenge';
 import {UserInfo} from '../types/User';
 
 const CHALLENGE_COLLECTION = 'challenges';
@@ -64,6 +65,17 @@ export const getPaginatedChallenges = async (
       }
     }
 
+    let participantLimitReached = false;
+    const participantSize = data?.participants?.length || 0;
+    const participantRange = PARTICIPANT_RANGES.find(
+      (range) => Number(range.value) === Number(data.participationRangeId)
+    ) as ParticipantRange;
+    const maxParticipants = Number(participantRange?.label.split(' - ')[1]);
+
+    if (participantSize >= maxParticipants) {
+      participantLimitReached = true;
+    }
+
     const response = {
       ...data,
       participantStatus, // Attach the participantStatus to the challenge data
@@ -74,6 +86,7 @@ export const getPaginatedChallenges = async (
     return {
       ...data,
       participantStatus, // Attach the participantStatus to the challenge data
+      participantLimitReached, // Attach the participantLimitReached to the challenge data
     };
   }));
 

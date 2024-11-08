@@ -59,3 +59,8 @@ export interface Challenge {
 export interface GetPaginatedChallengesResponse extends PaginatedResponse {
     challenges: Challenge[];
 }
+
+export type ParticipantRange = {
+    label: string;
+    value: number;
+}
