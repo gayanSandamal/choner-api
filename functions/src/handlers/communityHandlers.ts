@@ -12,7 +12,7 @@ import {
 } from '../services/communityService';
 import {CommunityPost, CommunityPostType, GetPaginatedCommunityPostsResponse} from '../types/Community';
 import {PostVisibilityStatus} from '../types/Post';
-import {now} from '../utils/commonUtils';
+import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
 
 // Create Community Post Handler
@@ -73,7 +73,7 @@ export const updateCommunityPostHandler = functions.https.onCall(async (data, co
       imageUrls,
       visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || existingPost.visibility,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : existingPost.scheduledAt,
-      updatedAt: now,
+      updatedAt: updatedTime,
     };
 
     const updatedPost = await updateCommunityPost(id, updatedData);

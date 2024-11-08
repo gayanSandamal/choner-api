@@ -12,7 +12,7 @@ import {
 } from '../services/replyService';
 import {Reply, GetRepliesResponse} from '../types/Reply';
 import {ToggleVoteResponse} from '../types/CommentsReplies';
-import {now} from '../utils/commonUtils';
+import {now, updatedTime} from '../utils/commonUtils';
 
 // Create Reply Handler
 export const createReplyHandler = functions.https.onCall(async (data, context) => {
@@ -67,7 +67,7 @@ export const updateReplyHandler = functions.https.onCall(async (data, context) =
 
     const updatedData: Partial<Reply> = {
       reply,
-      updatedAt: now,
+      updatedAt: updatedTime,
     };
 
     const updatedReplyDoc = await updateReply(replyId, updatedData, type);

@@ -12,7 +12,7 @@ import {
 } from '../services/interestService';
 import {GetPaginatedInterestsResponse, Interest} from '../types/Interest';
 import {PostVisibilityStatus} from '../types/Post';
-import {now} from '../utils/commonUtils';
+import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
 
 // Create Interest Handler
@@ -73,7 +73,7 @@ export const updateInterestHandler = functions.https.onCall(async (data, context
       description,
       visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || existingInterest.visibility,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : existingInterest.scheduledAt,
-      updatedAt: now,
+      updatedAt: updatedTime,
     };
 
     const updatedInterest = await updateInterest(id, updatedData);

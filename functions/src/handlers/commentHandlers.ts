@@ -4,7 +4,7 @@ import {getAuthenticatedUser} from '../utils/authUtils';
 import {createComment, updateComment, deleteComment, getComments} from '../services/commentService';
 import {handleError} from '../utils/errorHandler';
 import {Comment, GetPaginatedCommentsResponse} from '../types/Comment';
-import {now} from '../utils/commonUtils';
+import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllRepliesForComment} from './replyHandlers';
 
 const COLLECTION = 'communityPost';
@@ -66,13 +66,13 @@ export const updateCommentHandler = functions.https.onCall(async (data, context)
 
     const updatedData: Partial<Comment> = {
       comment,
-      updatedAt: now,
+      updatedAt: updatedTime,
     };
 
-    const updatedCommentDoc = await updateComment(commentId, updatedData, type);
+    const updatedComment = await updateComment(commentId, updatedData, type);
     return {
       message: 'Comment updated successfully',
-      data: updatedCommentDoc.data(),
+      data: updatedComment,
     };
   } catch (error) {
     return handleError(error);

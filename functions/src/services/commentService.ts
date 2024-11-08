@@ -19,10 +19,11 @@ export const updateComment = async (
   commentId: string,
   updatedData: Partial<Comment>,
   type = commentCollection
-): Promise<FirebaseFirestore.DocumentSnapshot<Comment>> => {
+): Promise<Comment> => {
   const commentRef = admin.firestore().collection(`${type}Comments`).doc(commentId);
   await commentRef.update(updatedData);
-  return commentRef.get() as unknown as FirebaseFirestore.DocumentSnapshot<Comment>;
+  const commentDoc = await commentRef.get() as unknown as FirebaseFirestore.DocumentSnapshot<Comment>;
+  return commentDoc.data() as Comment;
 };
 
 export const deleteComment = async (commentId: string, type: string): Promise<void> => {
