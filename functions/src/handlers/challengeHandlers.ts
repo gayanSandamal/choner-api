@@ -10,6 +10,7 @@ import {
   getChallenge,
   getPaginatedChallenges,
   requestToJoinChallenge,
+  startScheduledChallenges,
   toggleChallengeParticipation,
   updateChallenge,
 } from '../services/challengesService';
@@ -347,5 +348,17 @@ export const changeChallengeParticipantStatusHandler = functions.https.onCall(as
     return {message: `Challenge participant status updated to ${participantStatus} successfully`};
   } catch (error) {
     return handleError(error);
+  }
+});
+
+// Start scheduled challenges
+export const startScheduledChallengesJobHandler = functions.pubsub.schedule('every 5 minutes').onRun(async () => {
+  try {
+    const startedChallengesCount = await startScheduledChallenges();
+    console.log(`${startedChallengesCount} challenges set as on-going`);
+    return null;
+  } catch (error) {
+    console.error('Error starting challenges:', error);
+    return null;
   }
 });

@@ -2,7 +2,7 @@
 
 import admin from '../admin/firebaseAdmin';
 import {PARTICIPANT_RANGES} from '../constants/challengeContstants';
-import {Challenge, ParticipantRange, UserChallengeStatus} from '../types/Challenge';
+import {Challenge, ChallengeState, ParticipantRange, UserChallengeStatus} from '../types/Challenge';
 import {UserInfo} from '../types/User';
 
 const CHALLENGE_COLLECTION = 'challenges';
@@ -264,4 +264,23 @@ export const changeChallengeParticipantStatus = async (
   });
 
   await challengeRef.update({participants: updatedParticipants});
+};
+
+// Start scheduled challenges
+export const startScheduledChallenges = async (): Promise<number> => {
+  const interestsRef = admin.firestore().collection(CHALLENGE_COLLECTION);
+
+  const scheduledInterests = await interestsRef
+    .where('challengeAt', '<=', admin.firestore.Timestamp.now())
+    .where('deleted', '==', false)
+    .get();
+
+  const batch = admin.firestore().batch();
+
+  scheduledInterests.forEach((doc) => {
+    batch.update(doc.ref, {challengeState: ChallengeState.ONGOING});
+  });
+
+  await batch.commit();
+  return scheduledInterests.size || 0;
 };
