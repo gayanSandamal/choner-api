@@ -11,7 +11,8 @@ import {
   getPaginatedChallenges,
   requestToJoinChallenge,
   toggleChallengeParticipation,
-  updateChallenge} from '../services/challengesService';
+  updateChallenge,
+} from '../services/challengesService';
 import {
   Challenge,
   ChallengeState,
