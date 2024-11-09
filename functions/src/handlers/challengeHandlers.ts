@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
-  bulkJoinApproveChallengeParticipants,
+  bulkApproveJoinChallengeParticipants,
   bulkApproveCompletionChallengeParticipants,
   changeChallengeParticipantStatus,
   createChallenge,
@@ -282,7 +282,7 @@ export const getAllChallengeParticipantsHandler = functions.https.onCall(async (
 });
 
 // Move selected participants from participantsToBBeJoined to participants
-export const bulkJoinApproveChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
+export const bulkApproveJoinChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
@@ -319,7 +319,7 @@ export const bulkJoinApproveChallengeParticipantsHandler = functions.https.onCal
       };
     }
 
-    await bulkJoinApproveChallengeParticipants(challengeId, uids);
+    await bulkApproveJoinChallengeParticipants(challengeId, uids);
 
     return {message: 'Challenge participants approved successfully'};
   } catch (error) {

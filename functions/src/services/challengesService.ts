@@ -195,7 +195,7 @@ export const getChallengeParticipantsToBeJoined = async (challengeId: string): P
 };
 
 // Move selected participants from participantsToBBeJoined to participants
-export const bulkJoinApproveChallengeParticipants = async (
+export const bulkApproveJoinChallengeParticipants = async (
   challengeId: string,
   uids: string[]
 ): Promise<void> => {

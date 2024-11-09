@@ -66,7 +66,7 @@ export const {
   getAllChallengeParticipantsHandler,
   toggleChallengeParticipationHandler,
   getParticipantsToBeJoinedHandler,
-  bulkJoinApproveChallengeParticipantsHandler,
+  bulkApproveJoinChallengeParticipantsHandler,
   bulkApproveCompletionChallengeParticipantsHandler,
   changeChallengeParticipantStatusHandler,
   startScheduledChallengesJobHandler,
