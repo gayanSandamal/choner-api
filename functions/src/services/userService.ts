@@ -102,7 +102,7 @@ export const deleteUserFromAuth = async (uid: string): Promise<void> => {
 // Helper function to delete all documents in a collection where `createdBy` matches the `uid`
 export const deleteUserDataFromCollection = async (collectionName: string, uid: string): Promise<void> => {
   const collectionRef = admin.firestore().collection(collectionName);
-  const snapshot = await collectionRef.where('createdBy', '==', uid).get();
+  const snapshot = await collectionRef.where('createdBy.uid', '==', uid).get();
 
   const batch = admin.firestore().batch();
   snapshot.forEach((doc) => batch.delete(doc.ref));
@@ -113,7 +113,7 @@ export const deleteUserDataFromCollection = async (collectionName: string, uid: 
 // Helper function to perform a soft delete by setting `deleted: true` and `deletedAt: Timestamp`
 export const softDeleteUserDataFromCollection = async (collectionName: string, uid: string): Promise<void> => {
   const collectionRef = admin.firestore().collection(collectionName);
-  const snapshot = await collectionRef.where('createdBy', '==', uid).get();
+  const snapshot = await collectionRef.where('createdBy.uid', '==', uid).get();
 
   const batch = admin.firestore().batch();
 

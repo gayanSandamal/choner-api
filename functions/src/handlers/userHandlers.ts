@@ -116,14 +116,26 @@ export const deleteUserHandler = functions.https.onCall(async (data, context) =>
     if (!isPermanent) {
       await softDeleteUserDataFromCollection('community', uid);
       await softDeleteUserDataFromCollection('interests', uid);
-      await softDeleteUserDataFromCollection('comments', uid);
+      await softDeleteUserDataFromCollection('challenges', uid);
       await softDeleteUserDataFromCollection('replies', uid);
+      await softDeleteUserDataFromCollection('communityPostComments', uid);
+      await softDeleteUserDataFromCollection('communityPostReplies', uid);
+      await softDeleteUserDataFromCollection('communityQuestionComments', uid);
+      await softDeleteUserDataFromCollection('communityQuestionReplies', uid);
+      await softDeleteUserDataFromCollection('interestsPostComments', uid);
+      await softDeleteUserDataFromCollection('interestsPostReplies', uid);
     } else {
       // Hard delete user-related documents from various collections
       await deleteUserDataFromCollection('community', uid);
       await deleteUserDataFromCollection('interests', uid);
-      await deleteUserDataFromCollection('comments', uid);
+      await deleteUserDataFromCollection('challenges', uid);
       await deleteUserDataFromCollection('replies', uid);
+      await deleteUserDataFromCollection('communityPostComments', uid);
+      await deleteUserDataFromCollection('communityPostReplies', uid);
+      await deleteUserDataFromCollection('communityQuestionComments', uid);
+      await deleteUserDataFromCollection('communityQuestionReplies', uid);
+      await deleteUserDataFromCollection('interestsPostComments', uid);
+      await deleteUserDataFromCollection('interestsPostReplies', uid);
     }
 
     // Delete user document from the Firestore users collection
