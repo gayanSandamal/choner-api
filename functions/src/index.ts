@@ -63,10 +63,11 @@ export const {
   deleteChallengeHandler,
   getChallengeHandler,
   getPaginatedChallengesHandler,
+  getAllChallengeParticipantsHandler,
   toggleChallengeParticipationHandler,
   getParticipantsToBeJoinedHandler,
-  approveChallengeParticipantsHandler,
-  bulkApproveChallengeParticipantsHandler,
+  bulkJoinApproveChallengeParticipantsHandler,
+  bulkApproveCompletionChallengeParticipantsHandler,
   changeChallengeParticipantStatusHandler,
   startScheduledChallengesJobHandler,
 } = challenge;

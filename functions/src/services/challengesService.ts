@@ -195,7 +195,7 @@ export const getChallengeParticipantsToBeJoined = async (challengeId: string): P
 };
 
 // Move selected participants from participantsToBBeJoined to participants
-export const approveChallengeParticipants = async (
+export const bulkJoinApproveChallengeParticipants = async (
   challengeId: string,
   uids: string[]
 ): Promise<void> => {
@@ -212,7 +212,7 @@ export const approveChallengeParticipants = async (
 };
 
 // Get all participants of a challenge
-export const getChallengeParticipants = async (challengeId: string): Promise<UserInfo[]> => {
+export const getAllChallengeParticipants = async (challengeId: string): Promise<UserInfo[]> => {
   const challengeDoc = await admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId).get();
   return challengeDoc.data()?.participants || [];
 };
@@ -224,7 +224,7 @@ export const getChallengeById = async (challengeId: string): Promise<Challenge |
 };
 
 // Bulk approve or reject participantStatus for all participants of a challenge based on uid
-export const bulkApproveChallengeParticipants = async (
+export const bulkApproveCompletionChallengeParticipants = async (
   challengeId: string,
   uids: string[]
 ): Promise<void> => {

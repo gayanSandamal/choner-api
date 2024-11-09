@@ -2,8 +2,8 @@ import * as functions from 'firebase-functions';
 import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
-  approveChallengeParticipants,
-  bulkApproveChallengeParticipants,
+  bulkJoinApproveChallengeParticipants,
+  bulkApproveCompletionChallengeParticipants,
   changeChallengeParticipantStatus,
   createChallenge,
   deleteChallenge,
@@ -13,6 +13,7 @@ import {
   startScheduledChallenges,
   toggleChallengeParticipation,
   updateChallenge,
+  getAllChallengeParticipants,
 } from '../services/challengesService';
 import {
   Challenge,
@@ -257,44 +258,37 @@ export const getParticipantsToBeJoinedHandler = functions.https.onCall(async (da
   }
 });
 
+// Get all participants of a challenge
+export const getAllChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
+  try {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+    }
+
+    const {challengeId} = data;
+    if (!challengeId) {
+      throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
+    }
+
+    const challengeParticipants = await getAllChallengeParticipants(challengeId);
+
+    return {
+      message: 'Challenge participants retrieved successfully',
+      data: challengeParticipants,
+    };
+  } catch (error) {
+    return handleError(error);
+  }
+});
+
 // Move selected participants from participantsToBBeJoined to participants
-export const approveChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
+export const bulkJoinApproveChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
     }
 
     const {challengeId, uids}: {challengeId: string, uids: string[]} = data;
-    if (!challengeId || !uids) {
-      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
-    }
-
-    if (!Array.isArray(uids) || uids.length > 0) {
-      throw new functions.https.HttpsError('invalid-argument', 'uids should be an array of strings or cannot be empty.');
-    }
-
-    const existingChallenge = await getChallenge(challengeId);
-    if (!existingChallenge) {
-      throw new functions.https.HttpsError('not-found', 'Challenge not found or recently removed.');
-    }
-
-    await approveChallengeParticipants(challengeId, uids);
-
-    return {message: 'Challenge participants approved successfully'};
-  } catch (error) {
-    return handleError(error);
-  }
-});
-
-// Bulk Approve Challenge Participants Handler
-// Only the array with uids is passed to the function and gets approved
-export const bulkApproveChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
-  try {
-    if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
-    }
-
-    const {challengeId, uids} = data;
     if (!challengeId || !uids) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
     }
@@ -325,7 +319,37 @@ export const bulkApproveChallengeParticipantsHandler = functions.https.onCall(as
       };
     }
 
-    await bulkApproveChallengeParticipants(challengeId, uids);
+    await bulkJoinApproveChallengeParticipants(challengeId, uids);
+
+    return {message: 'Challenge participants approved successfully'};
+  } catch (error) {
+    return handleError(error);
+  }
+});
+
+// Bulk Approve Challenge Participants Handler
+// Only the array with uids is passed to the function and gets approved
+export const bulkApproveCompletionChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
+  try {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+    }
+
+    const {challengeId, uids} = data;
+    if (!challengeId || !uids) {
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
+    }
+
+    if (!Array.isArray(uids) || uids.length > 0) {
+      throw new functions.https.HttpsError('invalid-argument', 'uids should be an array of strings or cannot be empty.');
+    }
+
+    const existingChallenge = await getChallenge(challengeId);
+    if (!existingChallenge) {
+      throw new functions.https.HttpsError('not-found', 'Challenge not found or recently removed.');
+    }
+
+    await bulkApproveCompletionChallengeParticipants(challengeId, uids);
     return {message: 'Challenge participants approved successfully'};
   } catch (error) {
     return handleError(error);
