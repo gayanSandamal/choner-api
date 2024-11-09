@@ -13,7 +13,7 @@ import {
   startScheduledChallenges,
   toggleChallengeParticipation,
   updateChallenge,
-  getAllChallengeParticipants,
+  getAllJoinedChallengeParticipants,
 } from '../services/challengesService';
 import {
   Challenge,
@@ -258,8 +258,8 @@ export const getParticipantsToBeJoinedHandler = functions.https.onCall(async (da
   }
 });
 
-// Get all participants of a challenge
-export const getAllChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
+// Get all joined participants of a challenge
+export const getAllJoinedChallengeParticipantsHandler = functions.https.onCall(async (data, context) => {
   try {
     if (!context.auth) {
       throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
@@ -270,11 +270,11 @@ export const getAllChallengeParticipantsHandler = functions.https.onCall(async (
       throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
     }
 
-    const challengeParticipants = await getAllChallengeParticipants(challengeId);
+    const joinedChallengeParticipants = await getAllJoinedChallengeParticipants(challengeId);
 
     return {
-      message: 'Challenge participants retrieved successfully',
-      data: challengeParticipants,
+      message: 'Joined challenge participants retrieved successfully',
+      data: joinedChallengeParticipants,
     };
   } catch (error) {
     return handleError(error);

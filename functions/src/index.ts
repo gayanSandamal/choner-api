@@ -63,7 +63,7 @@ export const {
   deleteChallengeHandler,
   getChallengeHandler,
   getPaginatedChallengesHandler,
-  getAllChallengeParticipantsHandler,
+  getAllJoinedChallengeParticipantsHandler,
   toggleChallengeParticipationHandler,
   getParticipantsToBeJoinedHandler,
   bulkApproveJoinChallengeParticipantsHandler,

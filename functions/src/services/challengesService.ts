@@ -2,7 +2,7 @@
 
 import admin from '../admin/firebaseAdmin';
 import {PARTICIPANT_RANGES} from '../constants/challengeContstants';
-import {Challenge, ChallengeState, ParticipantRange, UserChallengeStatus} from '../types/Challenge';
+import {Challenge, ChallengeState, Participant, ParticipantRange, UserChallengeStatus} from '../types/Challenge';
 import {UserInfo} from '../types/User';
 
 const CHALLENGE_COLLECTION = 'challenges';
@@ -211,10 +211,12 @@ export const bulkApproveJoinChallengeParticipants = async (
   await challengeRef.update({participants: updatedParticipants, participantsToBBeJoined: updatedParticipantsToBeJoined});
 };
 
-// Get all participants of a challenge
-export const getAllChallengeParticipants = async (challengeId: string): Promise<UserInfo[]> => {
+// Get all joined participants of a challenge
+export const getAllJoinedChallengeParticipants = async (challengeId: string): Promise<UserInfo[]> => {
   const challengeDoc = await admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId).get();
-  return challengeDoc.data()?.participants || [];
+  const challengeParticipants = challengeDoc.data()?.participants || [];
+  const joinedParticipants = challengeParticipants.filter((p: Participant) => p.participantStatus === UserChallengeStatus.JOINED);
+  return joinedParticipants || [];
 };
 
 // Get single challenge by challengeId
