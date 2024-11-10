@@ -12,3 +12,8 @@ export interface AuditRecord extends Record {
     updatedAt?: Timestamp;
     deleted?: boolean;
 }
+
+export type LocationField = {
+    name: string,
+    address?:string
+}

@@ -1,3 +1,4 @@
+import { LocationField } from './Common';
 import {PaginatedResponse} from './Post';
 import {UserInfo} from './User';
 
@@ -41,7 +42,7 @@ export interface Challenge {
     description: string;
     type: ChallengeTypes;
     challengeState: ChallengeStates;
-    location: string;
+    location: LocationField;
     challengeAt?: FirebaseFirestore.Timestamp;
     createdAt: FirebaseFirestore.Timestamp;
     updatedAt?: FirebaseFirestore.Timestamp;

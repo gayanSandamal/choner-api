@@ -19,7 +19,7 @@ import {deleteAllCommentsHandler} from './commentHandlers';
 export const createInterestHandler = functions.https.onCall(async (data, context) => {
   try {
     const user = await getAuthenticatedUser(context);
-    const {title, description, scheduledAt, visibility} = data;
+    const {title, description, scheduledAt, visibility, location} = data;
 
     if (!title || !description) {
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
@@ -36,6 +36,7 @@ export const createInterestHandler = functions.https.onCall(async (data, context
       comments: [],
       enrolments: [],
       ...(scheduledAt && {scheduledAt: new Date(scheduledAt)}),
+      location: location || null,
     };
 
     const createdInterest = await createInterest(newInterest);

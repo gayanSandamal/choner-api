@@ -73,7 +73,7 @@ export const getPaginatedUserSpecificCommunityPosts = async (
 ): Promise<GetPaginatedCommunityPostsResponse> => {
   let query = admin.firestore()
     .collection(COMMUNITY_COLLECTION)
-    .where("createdBy", "==", uid)
+    .where("createdBy.uid", "==", uid)
     .where("visibility", "==", visibility)
     .where("type", "==", type)
     .where("deleted", "==", false)

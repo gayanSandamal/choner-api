@@ -64,6 +64,12 @@ export const getPaginatedChallenges = async (
         participantStatus = participant.participantStatus;
       }
     }
+    if (data.participantsToBBeJoined) {
+      const participant = data.participantsToBBeJoined.find((p) => p.uid === uid);
+      if (participant) {
+        participantStatus = participant.participantStatus;
+      }
+    }
 
     let participantLimitReached = false;
     const participantSize = data?.participants?.length || 0;
@@ -108,7 +114,7 @@ const joinChallenge = async (challengeId: string, participant: UserInfo): Promis
 
   await challengeRef.update({
     participants: admin.firestore.FieldValue.arrayUnion(participation),
-    participantsToBBeJoined: [],
+    participantsToBBeJoined: admin.firestore.FieldValue.arrayRemove(participant),
   });
 };
 
@@ -117,6 +123,7 @@ const leaveChallenge = async (challengeId: string, participant: UserInfo): Promi
   const challengeRef = admin.firestore().collection(CHALLENGE_COLLECTION).doc(challengeId);
   await challengeRef.update({
     participants: admin.firestore.FieldValue.arrayRemove(participant),
+    participantsToBBeJoined: admin.firestore.FieldValue.arrayRemove(participant),
   });
 };
 

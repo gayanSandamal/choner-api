@@ -71,7 +71,7 @@ export const getPaginatedUserSpecificInterests = async (
   let query = admin.firestore()
     .collection(INTEREST_COLLECTION)
     .where("visibility", "==", visibility)
-    .where("createdBy", "==", uid)
+    .where("createdBy.uid", "==", uid)
     .where("deleted", "==", false)
     .orderBy("createdAt", "desc")
     .limit(pageSize);
