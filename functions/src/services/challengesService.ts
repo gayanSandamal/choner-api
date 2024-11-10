@@ -108,6 +108,7 @@ const joinChallenge = async (challengeId: string, participant: UserInfo): Promis
 
   await challengeRef.update({
     participants: admin.firestore.FieldValue.arrayUnion(participation),
+    participantsToBBeJoined: [],
   });
 };
 

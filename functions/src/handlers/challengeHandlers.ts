@@ -84,17 +84,12 @@ export const updateChallengeHandler = functions.https.onCall(async (data, contex
       throw new functions.https.HttpsError('invalid-argument', 'Missing required fields.');
     }
 
-    const existingChallenge = await getChallenge(id);
-    if (!existingChallenge) {
-      throw new functions.https.HttpsError('not-found', 'Challenge not found.');
-    }
-
     const updatedChallengeData: Partial<Challenge> = {
       challengeState,
       participationRangeId,
       description,
       location,
-      challengeAt: admin.firestore.Timestamp.fromDate(new Date(challengeAt)),
+      challengeAt: new Date(challengeAt) as unknown as FirebaseFirestore.Timestamp,
       updatedAt: updatedTime,
       joinAnyone,
     };
