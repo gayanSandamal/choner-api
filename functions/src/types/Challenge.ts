@@ -1,4 +1,4 @@
-import { LocationField } from './Common';
+import {LocationField} from './Common';
 import {PaginatedResponse} from './Post';
 import {UserInfo} from './User';
 

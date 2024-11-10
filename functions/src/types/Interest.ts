@@ -1,4 +1,4 @@
-import { LocationField } from './Common';
+import {LocationField} from './Common';
 import {PaginatedResponse, Post} from './Post';
 
 export interface Interest extends Post {
