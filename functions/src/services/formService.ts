@@ -13,7 +13,19 @@ export const createForm = async (formData: Omit<CreateForm, 'id'>): Promise<Crea
   const {title, questions, createdBy, isFeedback = true} = formData;
   const COLLECTION = isFeedback ? FEEDBACK_COLLECTION : OPENING_QUESTIONS_COLLECTION;
   const formRef = admin.firestore().collection(COLLECTION).doc();
-  const questionsWithIds = questions.map((question: Question) => ({...question, id: uuidv4()}));
+  const questionsWithIds = questions.map((question: Question) => {
+    return {
+      ...question,
+      id: uuidv4(),
+      options: question.options?.map((option, index) => {
+        const questionId = index + 1;
+        return {
+          ...option,
+          id: questionId
+        }
+      }),
+    }
+  });
   const newForm = {
     id: formRef.id,
     title,
