@@ -9,6 +9,8 @@ import {
   getPaginatedInterests,
   getPaginatedUserSpecificInterests,
   publishScheduledInterests,
+  toggleInterestEnrolment,
+  getAllEnrolmentsByInterestId,
 } from '../services/interestService';
 import {GetPaginatedInterestsResponse, Interest} from '../types/Interest';
 import {PostVisibilityStatus} from '../types/Post';
@@ -155,5 +157,59 @@ export const publishScheduledInterestsJobHandler = functions.pubsub.schedule('ev
   } catch (error) {
     console.error('Error publishing scheduled interests:', error);
     return null;
+  }
+});
+
+// Toggle interest enrolment handler
+export const toggleInterestEnrolmentHandler = functions.https.onCall(async (data, context) => {
+  try {
+    const user = await getAuthenticatedUser(context);
+
+    const {interestId} = data;
+    if (!interestId) {
+      throw new functions.https.HttpsError('invalid-argument', 'Interest ID is required.');
+    }
+
+    const existingInterest = await getInterest(interestId);
+    if (!existingInterest) {
+      throw new functions.https.HttpsError('not-found', 'Challenge not found.');
+    }
+
+    const participant = getCreatedUserDTO(user);
+    const toggledInterest = await toggleInterestEnrolment(
+      existingInterest,
+      participant,
+      user.uid
+    );
+
+    return {
+      message: `Interest ${toggledInterest.enrolmentStatus}`,
+      data: toggledInterest,
+    };
+  } catch (error) {
+    return handleError(error);
+  }
+});
+
+// Get all enrolled enthusiasts of an interest
+export const getEnrolledEnthusiastsHandler = functions.https.onCall(async (data, context) => {
+  try {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
+    }
+
+    const {interestId} = data;
+    if (!interestId) {
+      throw new functions.https.HttpsError('invalid-argument', 'Interest ID is required.');
+    }
+
+    const enrolledEnthusiasts = await getAllEnrolmentsByInterestId(interestId);
+
+    return {
+      message: 'Enrolled interest enthusiasts retrieved successfully',
+      data: enrolledEnthusiasts,
+    };
+  } catch (error) {
+    return handleError(error);
   }
 });

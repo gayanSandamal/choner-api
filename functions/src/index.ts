@@ -26,6 +26,8 @@ export const {
   getPaginatedInterestsHandler,
   getPaginatedUserSpecificInterestsHandler,
   publishScheduledInterestsJobHandler,
+  toggleInterestEnrolmentHandler,
+  getEnrolledEnthusiastsHandler,
 } = interst;
 
 export const {
