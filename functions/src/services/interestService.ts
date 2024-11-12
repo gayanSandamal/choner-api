@@ -215,3 +215,9 @@ export const getAllEnrolmentsByInterestId = async (interestId: string): Promise<
   const enrollments = interestDoc.data()?.enrollments || [];
   return enrollments;
 };
+
+// Get the total interest counts
+export const getTotalInterestsCount = async (): Promise<number> => {
+  const interestsSnapshot = await admin.firestore().collection(INTEREST_COLLECTION).get();
+  return interestsSnapshot.size;
+};

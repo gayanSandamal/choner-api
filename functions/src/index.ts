@@ -6,6 +6,8 @@ import * as community from './handlers/communityHandlers';
 import * as user from './handlers/userHandlers';
 import * as docsHandler from './handlers/addKeyToDocumentsHandlers';
 import * as challenge from './handlers/challengeHandlers';
+import * as form from './handlers/formHandlers';
+import * as dashboard from './handlers/dashboardHandlers';
 
 export const {
   createUserDocumentHandler,
@@ -73,3 +75,16 @@ export const {
   changeChallengeParticipantStatusHandler,
   startScheduledChallengesJobHandler,
 } = challenge;
+
+export const {
+  createFormHandler,
+  getLatestFormHandler,
+  updateFormHandler,
+  deleteFormHandler,
+  submitFormHandler,
+  getUserUnsubmittedFormsHandler,
+} = form;
+
+export const {
+  getDashboardDataHandler,
+} = dashboard;

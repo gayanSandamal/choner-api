@@ -2,6 +2,8 @@ export interface UserInfo {
     uid: string;
     displayName: string;
     profileImageUrl: string;
+    feedbackFormSubmitted?: string[];
+    openingQuestionsFormSubmitted?: string[];
 }
 
 export interface UserDocument {

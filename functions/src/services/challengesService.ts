@@ -294,3 +294,25 @@ export const startScheduledChallenges = async (): Promise<number> => {
   await batch.commit();
   return scheduledInterests.size || 0;
 };
+
+export const getRandomChallenge = async (): Promise<Challenge> => {
+  // Count the total number of documents in the challenges collection
+  const countSnapshot = await admin.firestore().collection(CHALLENGE_COLLECTION).count().get();
+  const totalChallenges = countSnapshot.data()?.count || 0;
+
+  // Generate a random offset
+  const randomOffset = Math.floor(Math.random() * totalChallenges);
+
+  // Step 3: Query the challenges collection with the random offset
+  const challengesSnapshot = await admin.firestore()
+    .collection(CHALLENGE_COLLECTION)
+    .orderBy('createdAt') // Order by createdAt to ensure consistent ordering
+    .offset(randomOffset)
+    .limit(1)
+    .get();
+
+
+  // Return the randomly selected challenge
+  const challenge = challengesSnapshot.docs[0].data() as Challenge;
+  return challenge;
+};

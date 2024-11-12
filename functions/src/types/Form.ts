@@ -53,6 +53,7 @@ export type Question = {
     placeholder?: string;
     info?: string;
     value?: string | number | boolean | Date;
+    isMotive?: boolean;
 };
 
 export type CreateForm = {

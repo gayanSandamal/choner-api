@@ -7,6 +7,8 @@ import {v4 as uuidv4} from 'uuid';
 
 const FEEDBACK_COLLECTION = 'feedback';
 const OPENING_QUESTIONS_COLLECTION = 'openingQuestions';
+const FEEDBACK_SUBMISSION_COLLECTION = 'feedback';
+const OPENING_QUESTIONS_SUBMISSION_COLLECTION = 'openingQuestions';
 
 // Create a new form
 export const createForm = async (formData: Omit<CreateForm, 'id'>): Promise<CreatedForm> => {
@@ -21,10 +23,10 @@ export const createForm = async (formData: Omit<CreateForm, 'id'>): Promise<Crea
         const questionId = index + 1;
         return {
           ...option,
-          id: questionId
-        }
+          id: questionId,
+        };
       }),
-    }
+    };
   });
   const newForm = {
     id: formRef.id,
@@ -38,7 +40,7 @@ export const createForm = async (formData: Omit<CreateForm, 'id'>): Promise<Crea
 };
 
 // Get latest form by collection
-export const getLatestForm = async (isFeedback = true): Promise<Form | null> => {
+export const getLatestForm = async (isFeedback: boolean): Promise<Form | null> => {
   const COLLECTION = isFeedback ? FEEDBACK_COLLECTION : OPENING_QUESTIONS_COLLECTION;
   const querySnapshot = await admin.firestore().collection(COLLECTION).orderBy('createdAt', 'desc').limit(1).get();
   if (querySnapshot.empty) {
@@ -73,7 +75,7 @@ export const submitForm = async (
   auth: UserInfo
 ): Promise<void> => {
   const {id, questions} = form;
-  const COLLECTION = isFeedback ? FEEDBACK_COLLECTION : OPENING_QUESTIONS_COLLECTION;
+  const COLLECTION = isFeedback ? FEEDBACK_SUBMISSION_COLLECTION : OPENING_QUESTIONS_SUBMISSION_COLLECTION;
   const formRef = admin.firestore().collection(COLLECTION).doc(id);
   const formSnapshot = await formRef.get();
   if (!formSnapshot.exists) {

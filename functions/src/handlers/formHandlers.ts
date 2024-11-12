@@ -4,6 +4,7 @@ import {CreatedForm, CreateForm, Form} from '../types/Form';
 import {UserInfo} from '../types/User';
 import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
 import {now} from '../utils/commonUtils';
+import {updateUserDocument} from '../services/userService';
 
 // Create a new form
 export const createFormHandler = functions.https.onCall(async (data, context) => {
@@ -40,8 +41,9 @@ export const getLatestFormHandler = functions.https.onCall(async (data, context)
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'You must be authenticated to get a form');
   }
+  const {isFeedback = true} = data;
   // Get latest form
-  const form = await getLatestForm();
+  const form = await getLatestForm(isFeedback);
   return {
     message: 'Form retreived successfully',
     data: form,
@@ -123,7 +125,49 @@ export const submitFormHandler = functions.https.onCall(async (data: Form & {isF
     context?.auth as unknown as UserInfo
   );
 
+  const formsSubmittedCollection = isFeedback ? 'feedbackFormSubmitted' : 'openingQuestionsFormSubmitted';
+  const formsSubmitted = user[formsSubmittedCollection];
+  if (formsSubmitted) {
+    formsSubmitted.push(id);
+  } else {
+    user[formsSubmittedCollection] = [id];
+  }
+
+  await updateUserDocument(context?.auth?.uid, {[formsSubmittedCollection]: user[formsSubmittedCollection]});
+
   return {
     message: 'Form submitted successfully',
+  };
+});
+
+// Get user unsubmitted forms
+// Call this function to get the latest form that the user has not submitted right after user signed up
+export const getUserUnsubmittedFormsHandler = functions.https.onCall(async (data, context) => {
+  // Check if user is authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'You must be authenticated to get unsubmitted forms');
+  }
+
+  const user = await getAuthenticatedUser(context);
+
+  const {isFeedback} = data;
+
+  const formsSubmittedCollection = isFeedback ? 'feedbackFormSubmitted' : 'openingQuestionsFormSubmitted';
+  const formsSubmitted = user[formsSubmittedCollection] || [];
+
+  const latestForm = await getLatestForm(isFeedback);
+
+  if (!latestForm) {
+    return {
+      message: 'No forms found',
+      data: [],
+    };
+  }
+
+  const isFormSubmitted = formsSubmitted.includes(latestForm.id);
+
+  return {
+    message: 'Unsubmitted forms retreived successfully',
+    data: isFormSubmitted ? [] : [latestForm],
   };
 });
