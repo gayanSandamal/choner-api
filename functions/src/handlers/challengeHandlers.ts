@@ -28,12 +28,11 @@ import admin from '../admin/firebaseAdmin';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
 import {PARTICIPANT_RANGES} from '../constants/challengeContstants';
-import { UserInfo } from '../types/User';
+import {UserInfo} from '../types/User';
 
 // Create Challenge Handler
 export const createChallengeHandler = functions.https.onCall(async (data, context) => {
   try {
-
     const {participantStatus, participationRangeId, description, location, joinAnyone, challengeAt} = data;
 
     if (!participantStatus || !participationRangeId || !description || !location || !challengeAt) {
