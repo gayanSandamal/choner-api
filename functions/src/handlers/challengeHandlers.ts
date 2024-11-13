@@ -197,8 +197,9 @@ export const toggleChallengeParticipationHandler = functions.https.onCall(async 
       };
     }
 
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     if (joinAnyone) {
-      const participant = getCreatedUserDTO(context?.auth as unknown as UserInfo);
+      const participant = user;
       const challenge = await toggleChallengeParticipation(
         existingChallenge,
         participant,
