@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import {createForm, deleteForm, getLatestForm, submitForm, updateForm} from '../services/formService';
 import {CreatedForm, CreateForm, Form} from '../types/Form';
 import {UserInfo} from '../types/User';
-import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
+import {getCreatedUserDTO} from '../utils/authUtils';
 import {now} from '../utils/commonUtils';
 import {updateUserDocument} from '../services/userService';
 import {handleError} from '../utils/errorHandler';
@@ -21,8 +21,7 @@ export const createFormHandler = functions.https.onCall(async (data, context) =>
       throw new functions.https.HttpsError('invalid-argument', 'Form data is invalid');
     }
 
-    const user = await getAuthenticatedUser(context);
-    const createdBy = getCreatedUserDTO(user);
+    const createdBy = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     const createFormData = {
       title,
       questions,
@@ -112,9 +111,7 @@ export const submitFormHandler = functions.https.onCall(async (data: Form & {isF
       throw new functions.https.HttpsError('unauthenticated', 'You must be authenticated to submit a form');
     }
 
-    const user = await getAuthenticatedUser(context);
-
-    const createdBy = getCreatedUserDTO(user) as unknown as UserInfo;
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
 
     const {id, title, pages, isFeedback} = data;
     // Check if data is valid
@@ -132,7 +129,7 @@ export const submitFormHandler = functions.https.onCall(async (data: Form & {isF
         ...(page.options && {options: page.options}),
         value: page.value,
       })),
-      createdBy,
+      createdBy: user,
       createdAt: now,
     };
 
@@ -177,7 +174,7 @@ export const getUserUnsubmittedFormsHandler = functions.https.onCall(async (data
       throw new functions.https.HttpsError('unauthenticated', 'You must be authenticated to get unsubmitted forms');
     }
 
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
 
     const {isFeedback} = data;
 

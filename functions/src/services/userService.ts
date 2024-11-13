@@ -1,8 +1,7 @@
 import admin from '../admin/firebaseAdmin';
 import {UserDocument} from '../types/User';
-import {generateOtp} from '../utils/authUtils';
 import {now} from '../utils/commonUtils';
-import {sendOtpEmail} from './emailService';
+import {bulkUpdateFormSubmissions} from './formService';
 
 const USERS_COLLECTION = 'users';
 const OTP_EXPIRATION_MINUTES = 10;
@@ -13,20 +12,11 @@ export const registerNewUser = async (user: UserDocument): Promise<void> => {
   console.log(`User document created for user ${user.uid}`);
 };
 
-export const createUserDocument = async (user: UserDocument, otp: string): Promise<void> => {
+export const createUserDocument = async (user: UserDocument): Promise<void> => {
   // Create user document in Firestore
   await registerNewUser(user);
 
-  // Store OTP with timestamp in Firestore
-  await admin.firestore().collection(USERS_COLLECTION).doc(user.uid).set(
-    {otp, otpCreatedAt: now},
-    {merge: true}
-  );
-
-  // Send OTP email to the user
-  if (user.email) {
-    await sendOtpEmail(user.email, otp);
-  }
+  await admin.auth().updateUser(user.uid, user);
 
   console.log(`User document created and OTP sent for user ${user.uid}`);
 };
@@ -56,27 +46,6 @@ export const verifyOtp = async (uid: string, inputOtp: string): Promise<boolean>
   }
 };
 
-// Resend OTP function
-export const resendOtp = async (uid: string, email: string): Promise<{ otp: string}> => {
-  const otp = generateOtp();
-
-  // Update the OTP and reset otpCreatedAt
-  await admin.firestore().collection(USERS_COLLECTION).doc(uid).set(
-    {
-      otp,
-      otpCreatedAt: now,
-    },
-    {merge: true}
-  );
-
-  // Send the OTP email
-  await sendOtpEmail(email, otp);
-  console.log(`OTP resent to ${email}`);
-  return {
-    otp,
-  };
-};
-
 export const getUserDocument = async (uid: string): Promise<UserDocument | null> => {
   const userDoc = await admin.firestore().collection(USERS_COLLECTION).doc(uid).get();
   return userDoc.exists ? (userDoc.data() as UserDocument) : null;
@@ -85,7 +54,12 @@ export const getUserDocument = async (uid: string): Promise<UserDocument | null>
 export const updateUserDocument = async (uid: string, userData: Partial<UserDocument>): Promise<void> => {
   const userRef = admin.firestore().collection(USERS_COLLECTION).doc(uid);
   await userRef.update(userData);
-  console.log(`User data updated for user ${uid}`);
+  await admin.auth().updateUser(uid, userData);
+
+  // Update user data in form submissions if displayName or profileImageUrl is empty or null in the form submissions
+  const updatedFormCount = await bulkUpdateFormSubmissions(uid, userData);
+
+  console.log(`User data updated for user ${uid} and ${updatedFormCount} form submissions updated`);
 };
 
 export const deleteUserDocument = async (uid: string): Promise<void> => {

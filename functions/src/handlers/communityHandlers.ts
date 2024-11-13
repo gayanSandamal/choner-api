@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
+import {getCreatedUserDTO} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
   createCommunityPost,
@@ -14,11 +14,11 @@ import {CommunityPost, CommunityPostType, GetPaginatedCommunityPostsResponse} fr
 import {PostVisibilityStatus} from '../types/Post';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
+import { UserInfo } from '../types/User';
 
 // Create Community Post Handler
 export const createCommunityPostHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
     const {title, imageUrls, type = CommunityPostType.Post, scheduledAt, visibility} = data;
 
     if (!title) {
@@ -27,7 +27,7 @@ export const createCommunityPostHandler = functions.https.onCall(async (data, co
 
     const newPost = {
       title,
-      createdBy: getCreatedUserDTO(user),
+      createdBy: getCreatedUserDTO(context?.auth as unknown as UserInfo),
       createdAt: now,
       deleted: false,
       visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
@@ -86,7 +86,7 @@ export const updateCommunityPostHandler = functions.https.onCall(async (data, co
 // Delete Community Post Handler
 export const deleteCommunityPostHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     const {id, type} = data;
 
     if (!id) {
@@ -147,7 +147,7 @@ export const publishScheduledCommunityPostsHandler = functions.pubsub.schedule('
 // Get Paginated User-Specific Community Posts Handler
 export const getPaginatedUserSpecificCommunityPostsHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     const {type = 'post', pageSize = 10, lastVisible, visibility = PostVisibilityStatus.Public} = data;
 
     const response: GetPaginatedCommunityPostsResponse = await getPaginatedUserSpecificCommunityPosts(

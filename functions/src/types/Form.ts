@@ -1,4 +1,5 @@
-import {UserInfo} from 'firebase-admin/auth';
+import {UserInfo} from './User';
+
 
 export enum FormFieldTypes {
     text = 'text',

@@ -1,19 +1,18 @@
 import * as functions from 'firebase-functions';
 import admin from './../admin/firebaseAdmin';
-import {getAuthenticatedUser} from '../utils/authUtils';
+import {getCreatedUserDTO} from '../utils/authUtils';
 import {createComment, updateComment, deleteComment, getComments} from '../services/commentService';
 import {handleError} from '../utils/errorHandler';
 import {Comment, GetPaginatedCommentsResponse} from '../types/Comment';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllRepliesForComment} from './replyHandlers';
+import { UserInfo } from '../types/User';
 
 const COLLECTION = 'communityPost';
 
 // Create Comment Handler
 export const createCommentHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
-
     const {postId, comment, type} = data;
 
     if (!postId || !comment) {
@@ -23,11 +22,7 @@ export const createCommentHandler = functions.https.onCall(async (data, context)
     const newComment: Comment = {
       postId: postId,
       comment: comment,
-      createdBy: {
-        uid: user.uid,
-        displayName: user.displayName,
-        profileImageUrl: user.profileImageUrl,
-      },
+      createdBy: getCreatedUserDTO(context?.auth as unknown as UserInfo),
       createdAt: now,
       deleted: false,
       id: '',
@@ -43,7 +38,7 @@ export const createCommentHandler = functions.https.onCall(async (data, context)
 // Update Comment Handler
 export const updateCommentHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
 
     const {commentId, comment, type} = data;
 
@@ -82,7 +77,7 @@ export const updateCommentHandler = functions.https.onCall(async (data, context)
 // Delete Comment Handler
 export const deleteCommentHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
 
     const {postId, commentId, type} = data;
 
@@ -151,7 +146,7 @@ export const getCommentsHandler = functions.https.onCall(async (data) => {
 // Vote/Upvote Comment Handler
 export const voteUpvoteCommentHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     const {commentId, type} = data;
 
     if (!commentId) {

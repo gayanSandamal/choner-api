@@ -170,8 +170,7 @@ export const getChallengeById = async (interestId: string): Promise<Interest | n
 // If the current user is already enrolled, they will be removed from the enrolments list or vice versa
 export const toggleInterestEnrolment = async (
   interest: Interest,
-  enthusiast: UserInfo,
-  uid: string
+  enthusiast: UserInfo
 ): Promise<Interest> => {
   const interestId = interest?.id || '';
   const enrolments = interest?.enrolments || [];
@@ -179,7 +178,7 @@ export const toggleInterestEnrolment = async (
   const getSanitizedInterest = async (): Promise<Interest> => {
     const interest = await getChallengeById(interestId);
     // Check if the user is a participant and get their status
-    const enrollments = interest?.enrolments?.find((p) => p.uid === uid) as any;
+    const enrollments = interest?.enrolments?.find((p) => p.uid === enthusiast.uid) as any;
     if (interest) {
       interest.enrolmentStatus = enrollments;
     }

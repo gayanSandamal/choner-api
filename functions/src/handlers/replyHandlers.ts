@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import {getAuthenticatedUser} from '../utils/authUtils';
+import {getCreatedUserDTO} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
   createReply,
@@ -13,11 +13,11 @@ import {
 import {Reply, GetRepliesResponse} from '../types/Reply';
 import {ToggleVoteResponse} from '../types/CommentsReplies';
 import {now, updatedTime} from '../utils/commonUtils';
+import { UserInfo } from '../types/User';
 
 // Create Reply Handler
 export const createReplyHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
     const {postId, commentId, reply, type} = data;
 
     if (!commentId || !reply) {
@@ -28,11 +28,7 @@ export const createReplyHandler = functions.https.onCall(async (data, context) =
       postId,
       commentId,
       reply,
-      createdBy: {
-        uid: user.uid,
-        displayName: user.displayName,
-        profileImageUrl: user.profileImageUrl,
-      },
+      createdBy: getCreatedUserDTO(context?.auth as unknown as UserInfo),
       deleted: false,
       createdAt: now,
     };

@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
+import {getCreatedUserDTO} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
   createInterest,
@@ -16,11 +16,11 @@ import {GetPaginatedInterestsResponse, Interest} from '../types/Interest';
 import {PostVisibilityStatus} from '../types/Post';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
+import { UserInfo } from '../types/User';
 
 // Create Interest Handler
 export const createInterestHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
     const {title, description, scheduledAt, visibility, location} = data;
 
     if (!title || !description) {
@@ -30,7 +30,7 @@ export const createInterestHandler = functions.https.onCall(async (data, context
     const newInterest: Omit<Interest, 'id'> = {
       title,
       description,
-      createdBy: getCreatedUserDTO(user),
+      createdBy: getCreatedUserDTO(context?.auth as unknown as UserInfo),
       createdAt: now,
       visibility: scheduledAt ? PostVisibilityStatus.Scheduled : visibility || PostVisibilityStatus.Public,
       deleted: false,
@@ -51,7 +51,7 @@ export const createInterestHandler = functions.https.onCall(async (data, context
 // Update Interest Handler
 export const updateInterestHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     const {id, title, description, scheduledAt, visibility} = data;
 
     if (!id || !title || !description) {
@@ -89,7 +89,7 @@ export const updateInterestHandler = functions.https.onCall(async (data, context
 // Delete Interest Handler
 export const deleteInterestHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     const {id, type} = data;
 
     if (!id) {
@@ -133,7 +133,7 @@ export const getPaginatedInterestsHandler = functions.https.onCall(async (data, 
 // Get Paginated User-Specific Interests Handler
 export const getPaginatedUserSpecificInterestsHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
     const {pageSize = 10, lastVisible, visibility = PostVisibilityStatus.Public} = data;
 
     const response: GetPaginatedInterestsResponse = await getPaginatedUserSpecificInterests(
@@ -163,7 +163,7 @@ export const publishScheduledInterestsJobHandler = functions.pubsub.schedule('ev
 // Toggle interest enrolment handler
 export const toggleInterestEnrolmentHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
 
     const {interestId} = data;
     if (!interestId) {
@@ -175,12 +175,7 @@ export const toggleInterestEnrolmentHandler = functions.https.onCall(async (data
       throw new functions.https.HttpsError('not-found', 'Challenge not found.');
     }
 
-    const participant = getCreatedUserDTO(user);
-    const toggledInterest = await toggleInterestEnrolment(
-      existingInterest,
-      participant,
-      user.uid
-    );
+    const toggledInterest = await toggleInterestEnrolment(existingInterest, user);
 
     return {
       message: `Interest ${toggledInterest.enrolmentStatus}`,

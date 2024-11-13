@@ -7,18 +7,14 @@ import {
   deleteUserFromAuth,
   deleteUserDataFromCollection,
   softDeleteUserDataFromCollection,
-  resendOtp,
 } from '../services/userService';
-import {UserDocument, UpdateUserResponse} from '../types/User';
+import {UserDocument, UpdateUserResponse, UserInfo} from '../types/User';
 import {handleError} from '../utils/errorHandler';
-import {generateOtp} from '../utils/authUtils';
+import {getCreatedUserDTO} from '../utils/authUtils';
 
 // Create User Document Handler (Triggered on Auth User Creation)
 export const createUserDocumentHandler = functions.auth.user().onCreate(async (user) => {
   try {
-    // Generate OTP
-    const otp = generateOtp();
-
     const newUser: UserDocument = {
       uid: user.uid,
       email: user.email || '',
@@ -27,38 +23,11 @@ export const createUserDocumentHandler = functions.auth.user().onCreate(async (u
     };
 
     // Register new user and send OTP
-    await createUserDocument(newUser, otp);
+    await createUserDocument(newUser);
 
-    return {
-      ...newUser,
-      otp,
-    };
+    return newUser;
   } catch (error) {
     console.error(`Error creating user document or sending OTP: ${error}`);
-    return handleError(error);
-  }
-});
-
-// Resend OTP Handler
-export const resendOtpHandler = functions.https.onCall(async (data, context) => {
-  try {
-    if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated user.');
-    }
-
-    // Extract UID and email from request data
-    const {uid, email} = data;
-
-    if (!uid || !email) {
-      throw new functions.https.HttpsError('invalid-argument', 'Missing required fields: uid or email.');
-    }
-
-    // Call the resendOtp function to generate and send a new OTP
-    await resendOtp(uid, email);
-
-    return {message: 'OTP resent successfully'};
-  } catch (error) {
-    console.error('Error resending OTP:', error);
     return handleError(error);
   }
 });
@@ -91,7 +60,7 @@ export const setUserHandler = functions.https.onCall(async (data, context) => {
     }
 
     const {uid, ...updateData} = data;
-    await updateUserDocument(uid, updateData);
+    await updateUserDocument(uid, {...getCreatedUserDTO(context?.auth as unknown as UserInfo), ...updateData});
 
     const response: UpdateUserResponse = {message: 'User data updated successfully'};
     return response;

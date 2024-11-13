@@ -11,7 +11,6 @@ import * as dashboard from './handlers/dashboardHandlers';
 
 export const {
   createUserDocumentHandler,
-  resendOtpHandler,
   getUserHandler,
   setUserHandler,
   deleteUserHandler,

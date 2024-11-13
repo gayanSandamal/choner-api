@@ -1,10 +1,12 @@
 import admin from '../admin/firebaseAdmin';
 import {CreatedForm, CreateForm, Form, FormSubmissionField, Question, FormFieldTypes, FormSubmission} from '../types/Form';
+import {UserInfo} from '../types/User';
 import {now} from '../utils/commonUtils';
 import {v4 as uuidv4} from 'uuid';
 
 const FEEDBACK_COLLECTION = 'feedback';
 const OPENING_QUESTIONS_COLLECTION = 'openingQuestions';
+const SUBMISSION_COLLECTION = 'submissions';
 
 // Create a new form
 export const createForm = async (formData: Omit<CreateForm, 'id'>): Promise<CreatedForm> => {
@@ -96,7 +98,7 @@ export const submitForm = async (
     createdBy,
   };
 
-  const submissionsRef = admin.firestore().collection('submissions').doc();
+  const submissionsRef = admin.firestore().collection(SUBMISSION_COLLECTION).doc();
   const submissionId = submissionsRef.id;
 
   await submissionsRef.set(submission);
@@ -105,4 +107,18 @@ export const submitForm = async (
     ...submission,
     submittedFormId: submissionId,
   };
+};
+
+// Bulk update form submissions by user.uid
+export const bulkUpdateFormSubmissions = async (uid: string, userData: Partial<UserInfo>): Promise<number> => {
+  const submissionsRef = admin.firestore().collection(SUBMISSION_COLLECTION);
+  const submissions = await submissionsRef.where('createdBy.uid', '==', uid).get();
+
+  const batch = admin.firestore().batch();
+
+  submissions.forEach((doc) => {
+    batch.update(doc.ref, {createdBy: userData});
+  });
+  await batch.commit();
+  return submissions.size || 0;
 };

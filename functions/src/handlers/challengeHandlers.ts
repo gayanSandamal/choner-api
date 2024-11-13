@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import {getAuthenticatedUser, getCreatedUserDTO} from '../utils/authUtils';
+import {getCreatedUserDTO} from '../utils/authUtils';
 import {handleError} from '../utils/errorHandler';
 import {
   bulkApproveJoinChallengeParticipants,
@@ -28,11 +28,11 @@ import admin from '../admin/firebaseAdmin';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
 import {PARTICIPANT_RANGES} from '../constants/challengeContstants';
+import { UserInfo } from '../types/User';
 
 // Create Challenge Handler
 export const createChallengeHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
 
     const {participantStatus, participationRangeId, description, location, joinAnyone, challengeAt} = data;
 
@@ -41,7 +41,7 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
     }
 
     const createdBy = {
-      ...getCreatedUserDTO(user),
+      ...getCreatedUserDTO(context?.auth as unknown as UserInfo),
       participantStatus,
     } as Participant;
 
@@ -170,8 +170,6 @@ export const getPaginatedChallengesHandler = functions.https.onCall(async (data,
 // Toggle Challenge Participation Status Handler
 export const toggleChallengeParticipationHandler = functions.https.onCall(async (data, context) => {
   try {
-    const user = await getAuthenticatedUser(context);
-
     const {challengeId} = data;
     if (!challengeId) {
       throw new functions.https.HttpsError('invalid-argument', 'Challenge ID is required.');
@@ -201,11 +199,11 @@ export const toggleChallengeParticipationHandler = functions.https.onCall(async 
     }
 
     if (joinAnyone) {
-      const participant = getCreatedUserDTO(user);
+      const participant = getCreatedUserDTO(context?.auth as unknown as UserInfo);
       const challenge = await toggleChallengeParticipation(
         existingChallenge,
         participant,
-        user.uid
+        context?.auth?.uid as string
       );
 
       return {
