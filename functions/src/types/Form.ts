@@ -75,11 +75,17 @@ export type FormSubmissionField = {
     id: string;
     title: string;
     type: FormFieldTypes;
-    value?: string | number | boolean | Date;
+    value?: string | number | boolean | Date | null;
     scale?: number;
 };
 
-export type FormSubmission = {
+export type UserFormSubmission = {
     formId: string;
-    questions: FormSubmissionField[];
+    submittedFormId?: string;
+    createdAt: FirebaseFirestore.Timestamp;
 };
+
+export type FormSubmission = {
+    questions: FormSubmissionField[];
+    createdBy: UserInfo;
+} & UserFormSubmission;

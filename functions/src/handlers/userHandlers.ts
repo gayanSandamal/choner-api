@@ -124,6 +124,7 @@ export const deleteUserHandler = functions.https.onCall(async (data, context) =>
       await softDeleteUserDataFromCollection('communityQuestionReplies', uid);
       await softDeleteUserDataFromCollection('interestsPostComments', uid);
       await softDeleteUserDataFromCollection('interestsPostReplies', uid);
+      await softDeleteUserDataFromCollection('submissions', uid);
     } else {
       // Hard delete user-related documents from various collections
       await deleteUserDataFromCollection('community', uid);
@@ -136,6 +137,7 @@ export const deleteUserHandler = functions.https.onCall(async (data, context) =>
       await deleteUserDataFromCollection('communityQuestionReplies', uid);
       await deleteUserDataFromCollection('interestsPostComments', uid);
       await deleteUserDataFromCollection('interestsPostReplies', uid);
+      await deleteUserDataFromCollection('submissions', uid);
     }
 
     // Delete user document from the Firestore users collection

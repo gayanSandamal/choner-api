@@ -1,14 +1,10 @@
 import admin from '../admin/firebaseAdmin';
-import {CreatedForm, CreateForm, Form, FormSubmissionField, Question, FormFieldTypes} from '../types/Form';
-import {UserInfo} from '../types/User';
-import {getCreatedUserDTO} from '../utils/authUtils';
+import {CreatedForm, CreateForm, Form, FormSubmissionField, Question, FormFieldTypes, FormSubmission} from '../types/Form';
 import {now} from '../utils/commonUtils';
 import {v4 as uuidv4} from 'uuid';
 
 const FEEDBACK_COLLECTION = 'feedback';
 const OPENING_QUESTIONS_COLLECTION = 'openingQuestions';
-const FEEDBACK_SUBMISSION_COLLECTION = 'feedback';
-const OPENING_QUESTIONS_SUBMISSION_COLLECTION = 'openingQuestions';
 
 // Create a new form
 export const createForm = async (formData: Omit<CreateForm, 'id'>): Promise<CreatedForm> => {
@@ -71,18 +67,16 @@ export const deleteForm = async (id: string, isFeedback = true): Promise<void> =
 // Form submittion
 export const submitForm = async (
   form: CreatedForm,
-  isFeedback = true,
-  auth: UserInfo
-): Promise<void> => {
-  const {id, questions} = form;
-  const COLLECTION = isFeedback ? FEEDBACK_SUBMISSION_COLLECTION : OPENING_QUESTIONS_SUBMISSION_COLLECTION;
+  isFeedback = true
+): Promise<FormSubmission> => {
+  const {id, questions, createdBy} = form;
+  const COLLECTION = isFeedback ? FEEDBACK_COLLECTION : OPENING_QUESTIONS_COLLECTION;
   const formRef = admin.firestore().collection(COLLECTION).doc(id);
   const formSnapshot = await formRef.get();
   if (!formSnapshot.exists) {
     throw new Error('Form not found');
   }
   const now = admin.firestore.Timestamp.now();
-  const createdBy = getCreatedUserDTO(auth);
 
   const formattedQuestions = questions.map((question: Question): FormSubmissionField => {
     const {id, title, type, options, value} = question;
@@ -90,15 +84,25 @@ export const submitForm = async (
       id,
       title,
       type,
-      value,
+      value: value || null,
       ...(options && (type === FormFieldTypes.radio) && {scale: options.length}),
     };
   });
-  const submission = {
+
+  const submission: FormSubmission = {
     formId: id,
-    data: formattedQuestions,
+    questions: formattedQuestions,
     createdAt: now,
     createdBy,
   };
-  await formRef.collection('submissions').doc().set(submission);
+
+  const submissionsRef = admin.firestore().collection('submissions').doc();
+  const submissionId = submissionsRef.id;
+
+  await submissionsRef.set(submission);
+
+  return {
+    ...submission,
+    submittedFormId: submissionId,
+  };
 };
