@@ -16,7 +16,7 @@ import {GetPaginatedInterestsResponse, Interest} from '../types/Interest';
 import {PostVisibilityStatus} from '../types/Post';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
-import {UserInfo} from '../types/User';
+import {UserInfo} from 'firebase-admin/auth';
 
 // Create Interest Handler
 export const createInterestHandler = functions.https.onCall(async (data, context) => {

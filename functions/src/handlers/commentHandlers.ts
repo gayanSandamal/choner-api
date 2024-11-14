@@ -6,7 +6,7 @@ import {handleError} from '../utils/errorHandler';
 import {Comment, GetPaginatedCommentsResponse} from '../types/Comment';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllRepliesForComment} from './replyHandlers';
-import {UserInfo} from '../types/User';
+import {UserInfo} from 'firebase-admin/auth';
 
 const COLLECTION = 'communityPost';
 

@@ -32,6 +32,7 @@ export const createForm = async (formData: Omit<CreateForm, 'id'>): Promise<Crea
     questions: questionsWithIds,
     createdBy,
     createdAt: now,
+    isFeedback,
   };
   await formRef.set(newForm);
   return newForm as unknown as CreatedForm;
@@ -68,45 +69,49 @@ export const deleteForm = async (id: string, isFeedback = true): Promise<void> =
 
 // Form submittion
 export const submitForm = async (
+  createdBy: UserInfo,
   form: CreatedForm,
   isFeedback = true
 ): Promise<FormSubmission> => {
-  const {id, questions, createdBy} = form;
-  const COLLECTION = isFeedback ? FEEDBACK_COLLECTION : OPENING_QUESTIONS_COLLECTION;
-  const formRef = admin.firestore().collection(COLLECTION).doc(id);
-  const formSnapshot = await formRef.get();
-  if (!formSnapshot.exists) {
-    throw new Error('Form not found');
-  }
-  const now = admin.firestore.Timestamp.now();
+  try {
+    const {id, questions} = form;
+    const COLLECTION = isFeedback ? FEEDBACK_COLLECTION : OPENING_QUESTIONS_COLLECTION;
+    const formRef = admin.firestore().collection(COLLECTION).doc(id);
+    const formSnapshot = await formRef.get();
+    if (!formSnapshot.exists) {
+      throw new Error('Form not found');
+    }
 
-  const formattedQuestions = questions.map((question: Question): FormSubmissionField => {
-    const {id, title, type, options, value} = question;
-    return {
-      id,
-      title,
-      type,
-      value: value || null,
-      ...(options && (type === FormFieldTypes.radio) && {scale: options.length}),
+    const formattedQuestions = questions.map((question: Question): FormSubmissionField => {
+      const {id, title, type, options, value} = question;
+      return {
+        id,
+        title,
+        type,
+        value: value || null,
+        ...(options && (type === FormFieldTypes.radio) && {scale: options.length}),
+      };
+    });
+
+    const submission: FormSubmission = {
+      createdAt: now,
+      createdBy,
+      formId: id,
+      questions: formattedQuestions,
     };
-  });
 
-  const submission: FormSubmission = {
-    formId: id,
-    questions: formattedQuestions,
-    createdAt: now,
-    createdBy,
-  };
+    const submissionsRef = admin.firestore().collection(SUBMISSION_COLLECTION).doc();
+    const submissionId = submissionsRef.id;
 
-  const submissionsRef = admin.firestore().collection(SUBMISSION_COLLECTION).doc();
-  const submissionId = submissionsRef.id;
+    await submissionsRef.set(submission);
 
-  await submissionsRef.set(submission);
-
-  return {
-    ...submission,
-    submittedFormId: submissionId,
-  };
+    return {
+      ...submission,
+      submittedFormId: submissionId,
+    };
+  } catch (error) {
+    throw new Error(`Error submitting form: ${error}`);
+  }
 };
 
 // Bulk update form submissions by user.uid

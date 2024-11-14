@@ -147,7 +147,7 @@ export const toggleChallengeParticipation = async (
     return challenge as Challenge;
   };
 
-  if (participants.some((p: UserInfo) => p.uid === participant.uid)) {
+  if (participants.some((p: Participant) => p.uid === participant.uid)) {
     await leaveChallenge(challengeId, participant);
     const challenge = await getSanitizedChallenges();
     if (!challenge) {

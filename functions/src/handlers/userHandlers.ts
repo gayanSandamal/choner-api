@@ -8,9 +8,10 @@ import {
   deleteUserDataFromCollection,
   softDeleteUserDataFromCollection,
 } from '../services/userService';
-import {UserDocument, UpdateUserResponse, UserInfo} from '../types/User';
+import {UserDocument, UpdateUserResponse} from '../types/User';
 import {handleError} from '../utils/errorHandler';
 import {getCreatedUserDTO} from '../utils/authUtils';
+import {UserInfo} from 'firebase-admin/auth';
 
 // Create User Document Handler (Triggered on Auth User Creation)
 export const createUserDocumentHandler = functions.auth.user().onCreate(async (user) => {
@@ -60,7 +61,13 @@ export const setUserHandler = functions.https.onCall(async (data, context) => {
     }
 
     const {uid, ...updateData} = data;
-    await updateUserDocument(uid, {...getCreatedUserDTO(context?.auth as unknown as UserInfo), ...updateData});
+    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
+    const userDoc = {
+      ...user,
+      ...updateData,
+    };
+
+    await updateUserDocument(uid, userDoc);
 
     const response: UpdateUserResponse = {message: 'User data updated successfully'};
     return response;

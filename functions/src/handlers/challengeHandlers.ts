@@ -28,7 +28,7 @@ import admin from '../admin/firebaseAdmin';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
 import {PARTICIPANT_RANGES} from '../constants/challengeContstants';
-import {UserInfo} from '../types/User';
+import {UserInfo} from 'firebase-admin/auth';
 
 // Create Challenge Handler
 export const createChallengeHandler = functions.https.onCall(async (data, context) => {
@@ -42,7 +42,7 @@ export const createChallengeHandler = functions.https.onCall(async (data, contex
     const createdBy = {
       ...getCreatedUserDTO(context?.auth as unknown as UserInfo),
       participantStatus,
-    } as Participant;
+    } as unknown as Participant;
 
     const newChallengeData: Omit<Challenge, 'id'> = {
       challengeState: ChallengeState.SCHEDULED,

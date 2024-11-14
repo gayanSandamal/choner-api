@@ -14,6 +14,9 @@ export interface UserDocument {
     displayName: string;
     emailVerified: boolean;
     profileImageUrl?: string;
+    photoURL?: string;
+    providerId?: string;
+    phoneNumber?: string;
 }
 
 export interface UpdateUserResponse {

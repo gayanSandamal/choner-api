@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import {createForm, deleteForm, getLatestForm, submitForm, updateForm} from '../services/formService';
 import {CreatedForm, CreateForm, Form} from '../types/Form';
-import {UserInfo} from '../types/User';
+import {UserInfo} from 'firebase-admin/auth';
 import {getCreatedUserDTO} from '../utils/authUtils';
 import {now} from '../utils/commonUtils';
 import {updateUserDocument} from '../services/userService';
@@ -22,6 +22,7 @@ export const createFormHandler = functions.https.onCall(async (data, context) =>
     }
 
     const createdBy = getCreatedUserDTO(context?.auth as unknown as UserInfo);
+
     const createFormData = {
       title,
       questions,
@@ -111,7 +112,7 @@ export const submitFormHandler = functions.https.onCall(async (data: Form & {isF
       throw new functions.https.HttpsError('unauthenticated', 'You must be authenticated to submit a form');
     }
 
-    const user = getCreatedUserDTO(context?.auth as unknown as UserInfo);
+    const createdBy = getCreatedUserDTO(context?.auth as unknown as UserInfo);
 
     const {id, title, pages, isFeedback} = data;
     // Check if data is valid
@@ -120,27 +121,28 @@ export const submitFormHandler = functions.https.onCall(async (data: Form & {isF
     }
 
     const formData = {
+      createdAt: now,
+      createdBy,
       id,
       title,
       questions: pages.map((page) => ({
         id: page.id,
         title: page.title,
         type: page.type,
-        ...(page.options && {options: page.options}),
+        options: page.options || [],
         value: page.value,
       })),
-      createdBy: user,
-      createdAt: now,
     };
 
     // Submit form
     const newSubmission = await submitForm(
+      createdBy,
       formData as unknown as CreatedForm,
       isFeedback
     );
 
     const formsSubmittedCollection = isFeedback ? 'feedbackFormSubmitted' : 'openingQuestionsFormSubmitted';
-    const formsSubmitted = user[formsSubmittedCollection];
+    const formsSubmitted = createdBy[formsSubmittedCollection];
     if (formsSubmitted) {
       formsSubmitted.push({
         formId: newSubmission.formId,
@@ -148,14 +150,14 @@ export const submitFormHandler = functions.https.onCall(async (data: Form & {isF
         createdAt: newSubmission.createdAt,
       });
     } else {
-      user[formsSubmittedCollection] = [{
+      createdBy[formsSubmittedCollection] = [{
         formId: newSubmission.formId,
         submittedFormId: newSubmission.submittedFormId,
         createdAt: newSubmission.createdAt,
       }];
     }
 
-    await updateUserDocument(context?.auth?.uid, {[formsSubmittedCollection]: user[formsSubmittedCollection]});
+    await updateUserDocument(context?.auth?.uid, createdBy);
 
     return {
       message: 'Form submitted successfully',

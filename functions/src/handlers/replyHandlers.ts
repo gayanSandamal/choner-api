@@ -13,7 +13,7 @@ import {
 import {Reply, GetRepliesResponse} from '../types/Reply';
 import {ToggleVoteResponse} from '../types/CommentsReplies';
 import {now, updatedTime} from '../utils/commonUtils';
-import {UserInfo} from '../types/User';
+import {UserInfo} from 'firebase-admin/auth';
 
 // Create Reply Handler
 export const createReplyHandler = functions.https.onCall(async (data, context) => {

@@ -1,5 +1,7 @@
+import {UserInfo} from 'firebase-admin/auth';
 import admin from '../admin/firebaseAdmin';
 import {UserDocument} from '../types/User';
+import {getCreatedUserDTO} from '../utils/authUtils';
 import {now} from '../utils/commonUtils';
 import {bulkUpdateFormSubmissions} from './formService';
 
@@ -16,7 +18,18 @@ export const createUserDocument = async (user: UserDocument): Promise<void> => {
   // Create user document in Firestore
   await registerNewUser(user);
 
-  await admin.auth().updateUser(user.uid, user);
+  const userId = JSON.parse(JSON.stringify(user.uid));
+  const userData = user as unknown as Record<string, unknown>;
+
+  // Delete uid, email, displayName, photoURL, providerId, phoneNumber from user object
+  delete userData.uid;
+  delete userData.email;
+  delete userData.displayName;
+  delete userData.photoURL;
+  delete userData.providerId;
+  delete userData.phoneNumber;
+
+  await admin.auth().setCustomUserClaims(userId, user);
 
   console.log(`User document created and OTP sent for user ${user.uid}`);
 };
@@ -54,13 +67,21 @@ export const getUserDocument = async (uid: string): Promise<UserDocument | null>
 export const updateUserDocument = async (uid: string, userData: Partial<UserDocument>): Promise<void> => {
   const userRef = admin.firestore().collection(USERS_COLLECTION).doc(uid);
   await userRef.update(userData);
-  await admin.auth().updateUser(uid, userData);
 
-  // Update user data in form submissions if displayName or profileImageUrl is empty or null in the form submissions
-  const updatedFormCount = await bulkUpdateFormSubmissions(uid, userData);
+  // Directly update the Firebase Auth user profile
+  await admin.auth().updateUser(uid, {
+    displayName: userData.displayName || '',
+    ...(userData.profileImageUrl && {photoURL: userData.profileImageUrl}),
+  });
+
+  console.log('userData', JSON.stringify(userData));
+
+  // Update user data in form submissions if displayName or profileImageUrl is missing in submissions
+  const updatedFormCount = await bulkUpdateFormSubmissions(uid, getCreatedUserDTO(userData as UserInfo));
 
   console.log(`User data updated for user ${uid} and ${updatedFormCount} form submissions updated`);
 };
+
 
 export const deleteUserDocument = async (uid: string): Promise<void> => {
   const userRef = admin.firestore().collection(USERS_COLLECTION).doc(uid);

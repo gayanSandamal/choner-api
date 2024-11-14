@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import admin from '../admin/firebaseAdmin';
 import {UserInfo} from '../types/User';
 import {handleError} from './errorHandler';
+import {UserInfo as FUserInfo} from 'firebase-admin/auth';
 
 export const isAuthorized = (context: functions.https.CallableContext) => {
   try {
@@ -34,10 +35,10 @@ export const getAuthenticatedUser = async (context: functions.https.CallableCont
   }
 };
 
-export const getCreatedUserDTO = (user: UserInfo): UserInfo => {
+export const getCreatedUserDTO = (user: FUserInfo): UserInfo => {
   return {
     uid: user.uid,
-    displayName: user.displayName,
-    profileImageUrl: user.profileImageUrl || '',
+    displayName: user.displayName || '',
+    profileImageUrl: user.photoURL || '',
   };
 };

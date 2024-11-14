@@ -70,6 +70,7 @@ export type CreatedForm = {
     questions: Question[];
     createdBy: UserInfo;
     createdAt: FirebaseFirestore.Timestamp;
+    isFeedback?: boolean;
 };
 
 export type FormSubmissionField = {

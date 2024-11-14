@@ -14,7 +14,7 @@ import {CommunityPost, CommunityPostType, GetPaginatedCommunityPostsResponse} fr
 import {PostVisibilityStatus} from '../types/Post';
 import {now, updatedTime} from '../utils/commonUtils';
 import {deleteAllCommentsHandler} from './commentHandlers';
-import {UserInfo} from '../types/User';
+import {UserInfo} from 'firebase-admin/auth';
 
 // Create Community Post Handler
 export const createCommunityPostHandler = functions.https.onCall(async (data, context) => {
