@@ -15,8 +15,9 @@ export const getDashboardDataHandler = functions.https.onCall(async (_data, cont
     }
     // Get dashboard data
     const dashboardData = await getDashboardData(context.auth.uid);
+
     return {
-      message: 'Dashboard data retreived successfully',
+      message: 'Dashboard data retrieved successfully',
       data: dashboardData,
     };
   } catch (error) {

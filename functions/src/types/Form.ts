@@ -79,6 +79,7 @@ export type FormSubmissionField = {
     type: FormFieldTypes;
     value?: string | number | boolean | Date | null;
     scale?: number;
+    isMotive?: boolean;
 };
 
 export type UserFormSubmission = {

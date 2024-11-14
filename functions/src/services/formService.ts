@@ -83,13 +83,14 @@ export const submitForm = async (
     }
 
     const formattedQuestions = questions.map((question: Question): FormSubmissionField => {
-      const {id, title, type, options, value} = question;
+      const {id, title, type, options, value, isMotive} = question;
       return {
         id,
         title,
         type,
         value: value || null,
         ...(options && (type === FormFieldTypes.radio) && {scale: options.length}),
+        isMotive: isMotive || false,
       };
     });
 
