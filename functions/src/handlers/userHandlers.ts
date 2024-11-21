@@ -20,7 +20,6 @@ export const createUserDocumentHandler = functions.auth.user().onCreate(async (u
       uid: user.uid,
       email: user.email || '',
       displayName: user.displayName || '',
-      emailVerified: user.emailVerified,
     };
 
     // Register new user and send OTP

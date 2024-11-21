@@ -12,7 +12,6 @@ export interface UserDocument {
     uid: string;
     email: string;
     displayName: string;
-    emailVerified: boolean;
     profileImageUrl?: string;
     photoURL?: string;
     providerId?: string;

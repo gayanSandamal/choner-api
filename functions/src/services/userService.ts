@@ -6,7 +6,6 @@ import {now} from '../utils/commonUtils';
 import {bulkUpdateFormSubmissions} from './formService';
 
 const USERS_COLLECTION = 'users';
-const OTP_EXPIRATION_MINUTES = 10;
 
 export const registerNewUser = async (user: UserDocument): Promise<void> => {
   const userRef = admin.firestore().collection(USERS_COLLECTION).doc(user.uid);
@@ -32,31 +31,6 @@ export const createUserDocument = async (user: UserDocument): Promise<void> => {
   await admin.auth().setCustomUserClaims(userId, user);
 
   console.log(`User document created and OTP sent for user ${user.uid}`);
-};
-
-// Function to verify OTP with expiration check
-export const verifyOtp = async (uid: string, inputOtp: string): Promise<boolean> => {
-  const userRef = admin.firestore().collection(USERS_COLLECTION).doc(uid);
-  const userDoc = await userRef.get();
-
-  if (!userDoc.exists) {
-    throw new Error('User not found');
-  }
-
-  const userData = userDoc.data();
-  const storedOtp = userData?.otp;
-  const otpCreatedAt = userData?.otpCreatedAt?.toDate();
-
-  // Check if the OTP is valid and within the expiration period
-  const isOtpExpired = otpCreatedAt && (Date.now() - otpCreatedAt.getTime()) > OTP_EXPIRATION_MINUTES * 60 * 1000;
-
-  if (storedOtp === inputOtp && !isOtpExpired) {
-    console.log('OTP verified successfully');
-    return true;
-  } else {
-    console.log('OTP is invalid or has expired');
-    return false;
-  }
 };
 
 export const getUserDocument = async (uid: string): Promise<UserDocument | null> => {
